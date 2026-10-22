@@ -59,9 +59,9 @@ window.SB = window.SB || {};
     pdfjsP = new Promise((resolve, reject) => {
       if (window.pdfjsLib) return resolve(window.pdfjsLib);
       const s = document.createElement('script');
-      s.src = 'assets/vendor/pdf.min.js';
+      s.src = 'pdf.min.js';
       s.onload = () => {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'assets/vendor/pdf.worker.min.js';
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
         resolve(window.pdfjsLib);
       };
       s.onerror = () => reject(new Error('PDF preview library failed to load'));

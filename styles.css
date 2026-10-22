@@ -3,12 +3,12 @@
    Brand system: black / orange / paper. Bebas Neue, Oswald, Barlow.
    ========================================================================== */
 
-@font-face { font-family: 'Bebas'; src: url('../assets/fonts/BebasNeue-Regular.ttf'); font-display: swap; }
-@font-face { font-family: 'Oswald'; src: url('../assets/fonts/Oswald-Regular.ttf'); font-weight: 400 700; font-display: swap; }
-@font-face { font-family: 'Barlow'; src: url('../assets/fonts/Barlow-Regular.ttf'); font-weight: 400; font-display: swap; }
-@font-face { font-family: 'Barlow'; src: url('../assets/fonts/Barlow-Medium.ttf'); font-weight: 500; font-display: swap; }
-@font-face { font-family: 'Barlow'; src: url('../assets/fonts/Barlow-SemiBold.ttf'); font-weight: 600; font-display: swap; }
-@font-face { font-family: 'Barlow'; src: url('../assets/fonts/Barlow-Bold.ttf'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Bebas'; src: url('BebasNeue-Regular.ttf'); font-display: swap; }
+@font-face { font-family: 'Oswald'; src: url('Oswald-Regular.ttf'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: 'Barlow'; src: url('Barlow-Regular.ttf'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Barlow'; src: url('Barlow-Medium.ttf'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Barlow'; src: url('Barlow-SemiBold.ttf'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Barlow'; src: url('Barlow-Bold.ttf'); font-weight: 700; font-display: swap; }
 
 :root {
   --orange: #FF5A1F;

@@ -196,7 +196,7 @@
     const name = (p.name || 'Program').toUpperCase();
     let pages = `
       <section class="pp pp-cover">
-        <div class="stripe"><img src="assets/img/logo-black.png" alt=""></div>
+        <div class="stripe"><img src="logo-black.png" alt=""></div>
         <div class="txt">
           <div class="k">Spainhour Bros Strength Co.</div>
           <h1>${esc(name)}</h1>
