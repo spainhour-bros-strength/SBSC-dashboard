@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>SBSC Dashboard</title>
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="assets/img/logo.png" alt="Spainhour Bros Strength Co.">
+        <div class="tag">Internal Dashboard</div>
+      </div>
+      <nav class="nav" id="nav"></nav>
+      <div class="foot">Data stays on this device. Back up from Settings.</div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <button id="menu-btn" aria-label="Open menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <img src="assets/img/logo.png" alt="SBSC">
+      </header>
+      <div id="view"></div>
+    </div>
+  </div>
+
+  <div id="print-root"></div>
+  <div class="toasts" id="toasts"></div>
+
+  <script src="assets/vendor/chart.umd.min.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/files.js"></script>
+  <script src="js/seed.js"></script>
+  <script src="js/views/home.js"></script>
+  <script src="js/views/programs.js"></script>
+  <script src="js/views/builder.js"></script>
+  <script src="js/views/forcedecks.js"></script>
+  <script src="js/views/clients.js"></script>
+  <script src="js/views/memberships.js"></script>
+  <script src="js/views/schedule.js"></script>
+  <script src="js/views/settings.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

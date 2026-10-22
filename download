@@ -1,0 +1,7 @@
+# Never commit client data
+*.csv
+!samples/forcedecks-sample.csv
+*.json
+sbsc-backup-*
+.DS_Store
+Thumbs.db
