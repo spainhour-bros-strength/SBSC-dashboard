@@ -25,7 +25,7 @@
   const PRESETS = [
     ['Mobility', 'Full-body mobility flow'],
     ['Warm-up', 'Dynamic warm-up before a lift'],
-    ['Random Lift', 'Random full-body lift'],
+    ['Lift', 'Full-body lift'],
     ['Upper', 'Upper body strength session'],
     ['Lower', 'Lower body strength session'],
     ['Core', 'Core and trunk stability circuit'],
