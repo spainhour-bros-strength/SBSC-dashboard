@@ -257,6 +257,12 @@ table.data .muted { color: var(--gray-text); }
   font-family: 'Oswald'; font-size: 13px; letter-spacing: .08em; text-transform: uppercase;
 }
 .phase-tabs .chip.active { background: var(--black); color: #fff; border-color: var(--black); }
+.qs-presets .chip {
+  border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 14px; cursor: pointer;
+  font-family: 'Oswald'; font-size: 13px; letter-spacing: .08em; text-transform: uppercase;
+}
+.qs-presets .chip:hover { border-color: var(--orange); }
+.qs-presets .chip.active { background: var(--orange); color: var(--black); border-color: var(--orange); }
 
 /* ---------- ForceDecks ---------- */
 .metric-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }

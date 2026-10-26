@@ -82,6 +82,19 @@
             </div>
           </div>
           <div class="card">
+            <div class="card-head"><div class="card-title">AI Workout Generator</div><span class="card-sub">Powers Program Builder → Quick Session</span></div>
+            <p style="margin-top:0">Paste an Anthropic API key to have Claude write Quick Sessions. Without a key, Quick Session uses the built-in generator from your Exercise Library.</p>
+            <div class="form-grid" id="ai-form">
+              ${field('API key', `<input class="input" name="key" type="password" autocomplete="off" placeholder="sk-ant-…" value="${esc(SB.views.quick.ai.key())}">`)}
+              ${field('Model', SB.ui.select('model', SB.views.quick.ai.MODELS, SB.views.quick.ai.model()))}
+            </div>
+            <div class="row mt">
+              <button class="btn primary" id="ai-save">Save AI settings</button>
+              ${SB.views.quick.ai.key() ? `<button class="btn danger" id="ai-clear">${icon('trash')}Remove key</button>` : ''}
+              <span class="hint">Get a key at console.anthropic.com. The key is saved only in this browser. It is never committed to GitHub or included in backups, so add it on each device you use.</span>
+            </div>
+          </div>
+          <div class="card">
             <div class="card-head"><div class="card-title">About Your Data</div></div>
             <ul style="margin:0;padding-left:18px;line-height:1.7">
               <li>The GitHub repo only holds the dashboard's code — no client names, test results or contact info are ever committed.</li>
@@ -120,6 +133,12 @@
         SB.store.setSettings({ gymName: d.gymName, coaches: d.coaches.split(',').map(x => x.trim()).filter(Boolean) });
         toast('Settings saved');
       });
+      $('#ai-save').addEventListener('click', () => {
+        const d = SB.ui.formData($('#ai-form'));
+        SB.views.quick.ai.set(d.key, d.model);
+        toast(d.key ? 'AI settings saved' : 'AI key removed, using the built-in generator'); SB.refresh();
+      });
+      const aic = $('#ai-clear'); if (aic) aic.addEventListener('click', () => { SB.views.quick.ai.set('', ''); toast('AI key removed'); SB.refresh(); });
       $('#d-load').addEventListener('click', loadDemo);
       const dc = $('#d-clear'); if (dc) dc.addEventListener('click', clearDemo);
       $('#r-all').addEventListener('click', async () => {

@@ -31,12 +31,14 @@
   }
 
   SB.views.builder = {
-    render(el, { id }) {
+    render(el, { id, q = {} }) {
+      if (q.tab === 'quick') return SB.views.quick.render(el);
       let prog = id ? SB.store.get('programs', id) : null;
       if (id && !prog) { el.innerHTML = `<div class="content">${SB.ui.empty('Program not found', '', '<a class="btn" href="#/programs">Back to library</a>')}</div>`; return; }
       const isNew = !prog;
       let draft = prog ? JSON.parse(JSON.stringify(prog)) : blankProgram();
       if (!draft.phases || !draft.phases.length) draft.phases = [{ name: 'Phase 1', weeks: 4, days: [blankDay(1)] }];
+      if (prog) SB._lastBuilderId = prog.id;
       let phaseIdx = 0;
       let saveTimer = null;
 
@@ -51,6 +53,7 @@
             <a class="btn" href="#/programs">Library</a>`
         })}
         <div class="content">
+          ${SB.views.quick.subTabs('program')}
           <datalist id="ex-names">${SB.store.all('exercises').map(e => `<option value="${esc(e.name)}">${esc(e.category)}</option>`).join('')}</datalist>
           <div class="card">
             <div class="card-head"><div class="card-title">Program Details</div></div>
@@ -70,6 +73,7 @@
         </div>`;
 
       const $ = s => el.querySelector(s);
+      SB.views.quick.wireSubTabs(el);
       const stateEl = $('#save-state');
 
       function persist(now) {
@@ -78,6 +82,7 @@
         const run = () => {
           const saved = SB.store.upsert('programs', draft);
           draft.id = saved.id;
+          SB._lastBuilderId = saved.id;
           if (isNew && !location.hash.includes(saved.id)) history.replaceState(null, '', '#/builder/' + saved.id);
           stateEl.textContent = 'Saved';
         };

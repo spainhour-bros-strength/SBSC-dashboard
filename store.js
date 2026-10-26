@@ -17,7 +17,8 @@ window.SB = window.SB || {};
     programs: [],
     exercises: [],
     tests: [],
-    sessions: []
+    sessions: [],
+    quickSessions: []
   });
 
   let state = empty();
