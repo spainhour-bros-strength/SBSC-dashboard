@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Primal System PS-1 Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Layout: course sidebar (modules, exam, progress) beside one route at a time: home, a module (stepped lesson), or the final exam. Single dark SBSC theme. */
+  --bg: #0e0d0c;
+  --panel: #191715;
+  --line: #2d2a26;
+  --ink: #f2eee8;
+  --muted: #a39d94;
+  --accent: #ff6a13;
+  --accent-ink: #1a0b02;
+  --good: #4cc38a;
+  --bad: #ef5b5b;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--body); }
+h1, h2, h3 { font-family: var(--display); text-transform: uppercase; letter-spacing: .02em; line-height: 1.05; text-wrap: balance; margin: 0; }
+a { color: inherit; }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Top bar */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--line); flex-wrap: wrap; position: sticky; top: 0; background: var(--bg); z-index: 5; }
+.brand { font-family: var(--display); font-weight: 800; font-size: 22px; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; }
+.brand span { color: var(--accent); }
+.tb-right { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.course-progress { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
+.bar { width: 140px; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .4s; }
+.switch { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); cursor: pointer; }
+.switch input { appearance: none; width: 38px; height: 22px; border-radius: 11px; background: var(--line); position: relative; cursor: pointer; margin: 0; }
+.switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); transition: transform .2s; }
+.switch input:checked { background: var(--accent); }
+.switch input:checked::after { transform: translateX(16px); background: var(--accent-ink); }
+
+/* Shell */
+.shell { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 58px); }
+aside { border-right: 1px solid var(--line); padding: 18px 14px; display: flex; flex-direction: column; gap: 4px; }
+aside h2 { font-size: 14px; color: var(--muted); margin: 6px 8px 8px; letter-spacing: .1em; }
+.nav { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: center; padding: 9px 8px; border-radius: 8px; font-size: 15px; text-decoration: none; border: 0; background: transparent; text-align: left; width: 100%; }
+.nav:hover { background: var(--panel); }
+.nav .dot { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 14px; border: 1.5px solid var(--line); color: var(--muted); }
+.nav small { display: block; color: var(--muted); font-size: 12px; }
+.nav.done .dot { background: var(--good); border-color: var(--good); color: #062014; }
+.nav.here { background: var(--panel); }
+.nav.here .dot { border-color: var(--accent); color: var(--accent); }
+.nav.locked { opacity: .5; cursor: not-allowed; }
+.nav.exam .dot { border-radius: 6px; }
+.sep { height: 1px; background: var(--line); margin: 10px 8px; }
+
+main { padding: 28px clamp(16px, 4vw, 48px) 64px; max-width: 960px; width: 100%; }
+.eyebrow { color: var(--accent); font-family: var(--display); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; font-size: 14px; }
+.title h1 { font-size: clamp(36px, 5vw, 56px); margin-top: 4px; }
+.title p { color: var(--muted); max-width: 64ch; margin: 10px 0 0; }
+.objectives { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; color: var(--muted); font-size: 15px; }
+.objectives li::before { content: "▸ "; color: var(--accent); }
+.demo-tag { display: inline-block; font-family: var(--display); font-weight: 700; letter-spacing: .1em; font-size: 12px; text-transform: uppercase; padding: 2px 8px; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; vertical-align: middle; margin-left: 8px; }
+
+/* Steps */
+.steps { display: flex; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.step { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-size: 14px; font-weight: 600; }
+.step .n { font-family: var(--display); color: var(--muted); }
+.step.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.step.active .n { color: var(--accent); }
+.step.complete::after { content: "✓"; color: var(--good); font-weight: 700; }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: clamp(18px, 3vw, 28px); }
+.panel h2 { font-size: 30px; margin-bottom: 6px; }
+.panel .lede { color: var(--muted); margin: 0 0 18px; max-width: 64ch; }
+.stepnext { display: flex; justify-content: flex-end; margin-top: 18px; }
+
+/* Video */
+.video { aspect-ratio: 16/9; background: radial-gradient(circle at 70% 30%, #2a2522, #0b0a09); border-radius: 10px; position: relative; overflow: hidden; display: grid; place-items: center; }
+.video .play { width: 76px; height: 76px; border-radius: 50%; background: var(--accent); border: 0; display: grid; place-items: center; box-shadow: 0 6px 30px rgba(255,106,19,.35); }
+.video .play svg { margin-left: 5px; }
+.video .label { position: absolute; left: 18px; bottom: 44px; font-family: var(--display); font-size: 22px; text-transform: uppercase; }
+.video .label small { display: block; font-family: var(--body); font-size: 13px; color: var(--muted); text-transform: none; }
+.video .track { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: rgba(255,255,255,.12); }
+.video .track i { display: block; height: 100%; width: 0; background: var(--accent); }
+.chapters { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 6px; }
+.chapters li { display: grid; grid-template-columns: 56px 1fr; gap: 10px; padding: 8px 10px; border-radius: 8px; font-size: 15px; }
+.chapters li.on { background: rgba(255,106,19,.12); }
+.chapters time { font-variant-numeric: tabular-nums; color: var(--muted); }
+
+/* Learn */
+.setup { display: grid; gap: 10px; counter-reset: s; }
+.setup details { border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; background: var(--bg); }
+.setup summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; gap: 12px; align-items: center; }
+.setup summary::-webkit-details-marker { display: none; }
+.setup summary::before { counter-increment: s; content: counter(s); font-family: var(--display); font-weight: 800; font-size: 20px; color: var(--accent); width: 18px; flex: none; }
+.setup details[open] summary { color: var(--accent); }
+.setup details[data-seen] summary::after { content: "✓"; color: var(--good); margin-left: auto; }
+.setup .body { margin: 10px 0 2px 30px; color: var(--muted); }
+.setup .body b { color: var(--ink); }
+.setup .body ul { margin: 6px 0; padding-left: 18px; }
+.cue { display: inline-block; margin: 8px 0 0 30px; padding: 3px 10px; border-radius: 999px; background: rgba(255,106,19,.14); color: var(--accent); font-weight: 600; font-size: 14px; }
+.evidence { margin-top: 18px; border-left: 3px solid var(--accent); padding: 10px 14px; background: var(--bg); border-radius: 0 8px 8px 0; font-size: 14px; color: var(--muted); }
+.evidence b { color: var(--ink); }
+
+/* Shared interactive bits */
+.opts { display: grid; gap: 8px; }
+.opt { text-align: left; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-weight: 500; }
+.opt:hover { border-color: var(--muted); }
+.opt.correct { border-color: var(--good); background: rgba(76,195,138,.1); }
+.opt.wrong { border-color: var(--bad); background: rgba(239,91,91,.08); }
+.feedback { margin-top: 12px; font-size: 15px; min-height: 24px; }
+b.ok { color: var(--good); } b.no { color: var(--bad); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+fieldset { border: 0; padding: 0; margin: 0 0 14px; min-width: 0; }
+legend, .flabel { font-weight: 600; margin-bottom: 6px; display: block; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); font-size: 14px; cursor: pointer; }
+.seg input:checked + label { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+.field { width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); }
+.rx { background: var(--bg); border: 1px solid var(--accent); border-radius: 12px; padding: 18px; }
+.rx .tag { font-family: var(--display); font-size: 13px; letter-spacing: .1em; color: var(--accent); text-transform: uppercase; }
+.rx h3 { font-size: 28px; margin: 4px 0 8px; }
+.rx p { margin: 0 0 8px; color: var(--muted); font-size: 15px; }
+.rx.alert { border-color: var(--bad); }
+.rx.alert .tag { color: var(--bad); }
+.ladder { display: flex; gap: 4px; margin-top: 12px; flex-wrap: wrap; }
+.ladder span { font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--line); color: var(--muted); }
+.ladder span.here { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 15px; margin: 6px 0 10px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-weight: 600; }
+.kv dd.big { font-family: var(--display); font-size: 26px; color: var(--accent); line-height: 1; }
+
+/* M1 sort */
+.sort { display: grid; gap: 10px; }
+.task { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.task.solved { border-color: var(--good); }
+.task .btns { display: flex; gap: 6px; }
+.task .btns button { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: transparent; font-size: 13px; font-weight: 600; }
+.task .btns button.wrong { border-color: var(--bad); color: var(--bad); }
+.task .btns button.correct { background: var(--good); color: #062014; border-color: var(--good); }
+.task .why { grid-column: 1 / -1; font-size: 14px; color: var(--muted); }
+.tally { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.tally span { padding: 6px 12px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); font-size: 14px; }
+.tally b { font-family: var(--display); font-size: 18px; color: var(--accent); margin-left: 4px; }
+
+/* M2 fault finder */
+.ff { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 22px; align-items: start; }
+.ff svg { width: 100%; background: var(--bg); border-radius: 10px; border: 1px solid var(--line); }
+.clipnav { display: flex; gap: 6px; margin-bottom: 12px; }
+.clipnav button { padding: 4px 12px; border-radius: 6px; border: 1px solid var(--line); background: transparent; font-size: 14px; }
+.clipnav button.on { border-color: var(--accent); color: var(--accent); }
+.clipnav button.right::after { content: " ✓"; color: var(--good); }
+
+/* M5 prep */
+.prep { display: grid; gap: 14px; }
+.phase h3 { font-size: 18px; color: var(--accent); margin-bottom: 6px; }
+.phase h3 small { color: var(--muted); font-family: var(--body); text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 500; margin-left: 6px; }
+.drill { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 9px 12px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); margin-bottom: 6px; }
+.drill .d { font-weight: 600; }
+.drill .t { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; }
+.drill .s { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
+.drill.now { border-color: var(--accent); background: rgba(255,106,19,.1); }
+.drill.past { opacity: .5; }
+.drill.emph .d::after { content: " · emphasis"; color: var(--accent); font-weight: 500; font-size: 13px; }
+.runner { position: sticky; top: 74px; background: var(--bg); border: 1px solid var(--accent); border-radius: 12px; padding: 18px; }
+.runner .clock { font-family: var(--display); font-size: 64px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.runner .cur { font-weight: 700; font-size: 18px; margin-top: 6px; }
+.runner .why2 { color: var(--muted); font-size: 14px; margin: 4px 0 12px; }
+.runner .rbtns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* M7 template */
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 620px; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--display); text-transform: uppercase; letter-spacing: .06em; font-size: 13px; color: var(--muted); font-weight: 700; }
+td .ex { font-weight: 600; }
+td .rx2 { color: var(--muted); font-variant-numeric: tabular-nums; }
+td .tagp { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: var(--line); color: var(--muted); margin-left: 4px; white-space: nowrap; }
+.audit { display: grid; gap: 6px; margin-top: 16px; }
+.audit div { display: flex; gap: 10px; align-items: baseline; font-size: 15px; }
+.audit .ic { font-weight: 800; width: 18px; flex: none; }
+.audit .pass .ic { color: var(--good); } .audit .fail .ic { color: var(--bad); }
+.audit .fail { color: var(--ink); }
+.checks { display: grid; gap: 6px; }
+.checks label { display: flex; gap: 8px; align-items: center; font-size: 14px; cursor: pointer; }
+.checks input { accent-color: var(--accent); }
+
+/* Quiz */
+.q { padding: 16px 0; border-top: 1px solid var(--line); }
+.q:first-child { border-top: 0; padding-top: 0; }
+.q h3 { font-family: var(--body); text-transform: none; letter-spacing: 0; font-size: 17px; font-weight: 600; margin-bottom: 10px; }
+.q .tagm { font-size: 12px; color: var(--muted); font-weight: 500; display: block; margin-bottom: 4px; }
+.q .opts label { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); cursor: pointer; }
+.q .opts input { accent-color: var(--accent); margin-top: 5px; }
+.q.graded .why { display: block; }
+.why { display: none; margin-top: 8px; font-size: 14px; color: var(--muted); }
+.q label.correct { border-color: var(--good); }
+.q label.wrong { border-color: var(--bad); }
+.actions { display: flex; gap: 12px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+.btn { padding: 11px 22px; border-radius: 10px; border: 0; background: var(--accent); color: var(--accent-ink); font-weight: 700; font-family: var(--display); font-size: 18px; letter-spacing: .05em; text-transform: uppercase; text-decoration: none; display: inline-block; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn.sm { font-size: 15px; padding: 8px 16px; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.result { padding: 16px; border-radius: 10px; margin-top: 16px; font-weight: 500; }
+.result.pass { background: rgba(76,195,138,.12); border: 1px solid var(--good); }
+.result.fail { background: rgba(239,91,91,.1); border: 1px solid var(--bad); }
+.result big { font-family: var(--display); font-size: 34px; display: block; }
+
+/* Home */
+.hero { display: grid; grid-template-columns: 1.4fr 1fr; gap: 22px; align-items: stretch; margin-bottom: 24px; }
+.hero .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.stat b { display: block; font-family: var(--display); font-size: 32px; color: var(--accent); line-height: 1; }
+.stat span { font-size: 13px; color: var(--muted); }
+.howto { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 0 0 28px; }
+.howto div { border-top: 3px solid var(--accent); padding-top: 10px; font-size: 14px; color: var(--muted); }
+.howto div b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 2px; }
+.mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.mcard { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; text-decoration: none; }
+.mcard:hover { border-color: var(--muted); }
+.mcard .num { font-family: var(--display); font-weight: 800; font-size: 14px; color: var(--accent); letter-spacing: .1em; }
+.mcard h3 { font-size: 24px; }
+.mcard p { margin: 0; color: var(--muted); font-size: 14px; flex: 1; }
+.mcard .meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.pill { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); }
+.pill.done { border-color: var(--good); color: var(--good); }
+.pill.go { border-color: var(--accent); color: var(--accent); }
+.mcard.examcard { border-color: var(--accent); grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.mcard.locked { opacity: .55; }
+.h2s { font-size: 22px; margin: 0 0 12px; color: var(--muted); letter-spacing: .08em; }
+
+/* Exam */
+.examhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 18px; position: sticky; top: 66px; z-index: 2; }
+.examhead .timer { font-family: var(--display); font-size: 28px; font-variant-numeric: tabular-nums; }
+.examhead .ans { color: var(--muted); font-size: 14px; }
+.blueprint { width: 100%; min-width: 0; margin: 12px 0 18px; }
+.blueprint td:last-child, .blueprint th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Certificate */
+.cert { margin-top: 18px; background: #f4efe7; color: #17130f; border-radius: 6px; padding: clamp(20px, 5vw, 48px); position: relative; border: 10px solid #17130f; box-shadow: inset 0 0 0 2px var(--accent); text-align: center; }
+.cert .org { font-family: var(--display); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 15px; }
+.cert .org span { color: var(--accent); }
+.cert h2 { font-size: clamp(30px, 5vw, 46px); margin: 14px 0 4px; color: #17130f; }
+.cert .lvl { font-family: var(--display); font-size: 20px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.cert .name { font-family: var(--display); font-size: clamp(32px, 6vw, 54px); font-weight: 700; margin: 18px auto 4px; border-bottom: 2px solid #17130f; display: inline-block; padding: 0 24px; min-width: 60%; }
+.cert p { max-width: 52ch; margin: 10px auto; font-size: 15px; }
+.cert .row { display: flex; justify-content: space-between; gap: 12px; margin-top: 26px; font-size: 13px; flex-wrap: wrap; text-align: left; }
+.cert .row b { display: block; font-size: 15px; }
+.cert .stamp { position: absolute; top: 14px; right: 18px; font-family: var(--display); font-weight: 800; font-size: 13px; letter-spacing: .1em; color: var(--bad); border: 2px solid var(--bad); padding: 2px 8px; transform: rotate(6deg); }
+
+.note { color: var(--muted); font-size: 13px; margin-top: 28px; }
+.hidden { display: none !important; }
+
+@media (max-width: 860px) {
+  .shell { grid-template-columns: 1fr; }
+  aside { border-right: 0; border-bottom: 1px solid var(--line); flex-direction: row; overflow-x: auto; padding: 10px 16px; }
+  aside h2, .sep { display: none; }
+  .nav { grid-template-columns: 28px auto; white-space: nowrap; width: auto; }
+  .nav small { display: none; }
+  .two, .ff, .hero { grid-template-columns: 1fr; }
+  .howto { grid-template-columns: 1fr 1fr; }
+  .runner { position: static; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#home">Primal <span>System</span> · PS-1</a>
+  <div class="tb-right">
+    <label class="switch" title="Demo mode unlocks every module and the exam so you can see the full layout"><input type="checkbox" id="demoMode" checked> Demo mode: everything unlocked</label>
+    <div class="course-progress"><span id="courseLabel">0 of 7 modules</span><div class="bar"><i id="courseBar"></i></div></div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside aria-label="Course navigation" id="sidebar"></aside>
+  <main id="view"></main>
+</div>
+
+<script>
+/* ================= CONTENT ================= */
+const LADDER_DL = ['Hinge patterning', 'Kettlebell deadlift', 'Elevated pull', 'Trap bar deadlift', 'Conventional deadlift'];
+const LADDER_PR = ['Landmine press', 'Half-kneeling single-arm press', 'Seated DB press', 'Standing DB press', 'Barbell strict press'];
+
+const MODULES = [
+{
+  id: 'm1', num: 1, title: 'The Primal Philosophy', short: 'Philosophy', eyebrow: 'Why we train this way', mins: 50,
+  summary: 'Why the system is built on picking up, pressing overhead and carrying, and the six principles behind every Primal program.',
+  objectives: ['Explain why the system is built on picking up, pressing and carrying', 'Connect each Primal lift to everyday tasks', 'State the six Primal Principles'],
+  video: { len: '7:20', ch: [['0:00','Why three movements',0],['1:50','What makes us human',.25],['3:30','Primal vs. conventional programming',.48],['5:10','The six principles',.7]] },
+  learn: [
+    { t: 'Pick it up: the hinge', b: `<b>The deadlift and its variations.</b> Lifting groceries, kids, boxes and luggage off the floor is a hinge. Train it heavy and it gets easy everywhere else.` },
+    { t: 'Press it overhead', b: `<b>The overhead press and its variations.</b> Putting things on high shelves, loading overhead bins and holding things overhead. A free overhead reach is a human trait worth keeping strong.` },
+    { t: 'Carry it', b: `<b>Loaded carries.</b> Groceries, luggage and furniture all need grip, a stiff trunk and a steady gait under load.` },
+    { t: 'More than three exercises', b: `The three lifts are the foundation, not the whole program. <b>Variations, Primal Prep, Foundation Patterns and accessories</b> are all programmed around them.` },
+    { t: 'The six Primal Principles', b: `<ul><li><b>Patterns before load.</b> Earn the position before adding weight.</li><li><b>Prep serves the lift.</b> Every warm-up drill has a reason tied to a lift.</li><li><b>Variation with purpose.</b> Change a variation to solve a problem or reach a goal.</li><li><b>Carry daily strength.</b> Strength only counts if it transfers outside the gym.</li><li><b>Measure what matters.</b> Test against the Primal Standards.</li><li><b>Build the whole human.</b> The Primal lifts lead, and the Foundation Patterns complete the program.</li></ul>` }
+  ],
+  evidence: `Grip strength predicted all-cause and cardiovascular death in a large international cohort (Leong et al., 2015). Carrying events load the trunk differently than traditional lifts (McGill et al., 2009). A minimal effective program includes a squat, an upper-body pull and an upper-body push (Iversen et al., 2021).`,
+  tool: { key: 'sort', label: 'Everyday sort' },
+  quiz: [
+    { q: 'Which three movements are the Primal lifts built on?', o: ['Squat, bench press, deadlift', 'Hinge (pick up), overhead press, loaded carry', 'Lunge, push-up, row', 'Clean, jerk, snatch'], a: 1, why: 'Picking up, pressing overhead and carrying are the three Primal patterns.' },
+    { q: 'What does "patterns before load" mean in practice?', o: ['Never lift heavy', 'A client earns the position before weight is added', 'Always start with machines', 'Warm up for 20 minutes first'], a: 1, why: 'Load is added only once the client can own the position.' },
+    { q: 'Principle 6, "Build the whole human," requires which patterns every week?', o: ['Only the three Primal lifts', 'Squat, horizontal press, horizontal pull, vertical pull, single-leg', 'Biceps, triceps, calves', 'Running, swimming, cycling'], a: 1, why: 'The five Foundation Patterns complete every Primal week.' },
+    { q: 'In the PURE study, what did grip strength predict?', o: ['Vertical jump height', 'All-cause and cardiovascular death', 'Marathon time', 'Body fat percentage'], a: 1, why: 'Leong et al. (2015) found grip strength predicted all-cause and cardiovascular mortality.' }
+  ]
+},
+{
+  id: 'm2', num: 2, title: 'The Primal Deadlift', short: 'Deadlift', eyebrow: 'Pick it up', mins: 90,
+  summary: 'Teach the hip hinge, set up and coach the deadlift, spot the common faults, and choose an entry variation.',
+  objectives: ['Teach the hip hinge', 'Set up and coach a conventional deadlift', 'Spot and fix the five most common faults', 'Choose an entry variation'],
+  video: { len: '9:40', ch: [['0:00','Hinge vs. squat',0],['1:45','Setup in five steps',.18],['4:10','Bracing: the 360° breath',.43],['6:00','The five common faults',.62],['8:30','Variations and when to use them',.88]] },
+  learn: [
+    { t: 'Feet and bar', b: `<b>Feet about hip-width apart, bar over midfoot.</b> From the side, the bar should cut the foot roughly in half.` },
+    { t: 'Hinge down to the bar', b: `<b>Push the hips back, shins stay close to vertical.</b> The hips move back more than down.`, cue: '"Close the car door with your butt"' },
+    { t: 'Grip and pull the slack out', b: `<b>Hands just outside the legs.</b> Pull up on the bar until it clicks against the plates, without lifting it. Arms long, lats engaged.`, cue: '"Bend the bar around your shins"' },
+    { t: 'Brace', b: `<b>Take a 360° breath into the belly and hold it.</b> Ribs stay down and the trunk gets stiff before the bar moves.`, cue: '"Big breath, belt of air"' },
+    { t: 'Push the floor away', b: `<b>Drive through the whole foot, bar drags up the legs, hips and shoulders rise together.</b> Finish tall without leaning back.`, cue: '"Push the floor away"' }
+  ],
+  evidence: `The trap bar allowed heavier loads with lower peak moments at the lumbar spine and hip than the straight bar (Swinton et al., 2011). That's why it sits near the bottom of the deadlift ladder.`,
+  tool: { key: 'faults', label: 'Fault finder' }, tool2: { key: 'dlpick', label: 'Pick the variation' },
+  quiz: [
+    { q: 'A client’s hips rise before the bar leaves the floor. What is the best first fix?', o: ['Add weight so they brace harder', 'Pull the slack out and cue "push the floor away"', 'Switch to sumo', 'Look straight up at the ceiling'], a: 1, why: 'Pulling the slack out sets the position so hips and shoulders rise together.' },
+    { q: 'Where should the bar sit at the start of a conventional deadlift?', o: ['Over the toes', 'Over midfoot', 'Over the heels', 'Six inches in front of the shins'], a: 1, why: 'Over midfoot the bar path stays vertical and close to the body.' },
+    { q: 'A client fails the toe touch but passes the dowel hinge. Best starting variation?', o: ['Conventional deadlift from the floor', 'Elevated pull (bar on blocks)', 'Deficit deadlift', 'Snatch-grip deadlift'], a: 1, why: 'Raising the bar keeps the spine neutral while mobility catches up.' },
+    { q: 'Compared with the straight bar, the trap bar deadlift typically shows…', o: ['Higher lumbar and hip moments', 'Lower peak lumbar and hip moments and a higher knee moment', 'No difference', 'Lower loads lifted'], a: 1, why: 'Swinton et al. (2011).' },
+    { q: 'Which cue describes the bracing step?', o: ['Suck the belly button in', 'Take a 360° breath into the belly and hold it under load', 'Exhale fully before the pull', 'Breathe into the chest and lift the ribs'], a: 1, why: 'A 360° breath held under load stiffens the trunk before the bar moves.' }
+  ]
+},
+{
+  id: 'm3', num: 3, title: 'The Primal Overhead Press', short: 'Overhead Press', eyebrow: 'Press it overhead', mins: 80,
+  summary: 'Check whether a client is ready to press overhead, coach the strict press, and choose the right entry variation.',
+  objectives: ['Assess overhead readiness', 'Coach the strict press setup and bar path', 'Choose an entry variation'],
+  video: { len: '8:50', ch: [['0:00','Are they ready to press?',0],['2:10','Strict press setup',.25],['4:30','Bar path',.5],['6:15','Common faults',.7],['7:40','Variations',.87]] },
+  learn: [
+    { t: 'The readiness check', b: `<b>Arms reach the wall overhead without the ribs flaring or the lower back arching.</b> If not, start with a landmine or half-kneeling variation and work on the thoracic spine and shoulders.` },
+    { t: 'Setup', b: `<b>Grip just outside shoulder width, forearms vertical, glutes and abs tight, ribs down.</b>`, cue: '"Ribs down, squeeze the glutes"' },
+    { t: 'Bar path', b: `<b>Move the head back slightly, press straight up, then bring the head through at lockout.</b> Finish with the biceps by the ears and the bar over midfoot.`, cue: '"Head through the window"' },
+    { t: 'Common faults', b: `<ul><li>Leaning back to press (lost brace, ribs flare)</li><li>Elbows flaring out early</li><li>Soft lockout</li><li>Shrugging at the bottom</li></ul>` },
+    { t: 'The press ladder', b: `Landmine press → half-kneeling single-arm press → seated DB press → standing DB press → barbell strict press. <b>Half-kneeling locks the pelvis</b>, which makes it hard to cheat by arching.` }
+  ],
+  evidence: `Standing and dumbbell presses produced the highest deltoid activation but the lowest 1RM compared with seated and barbell versions (Saeterbakken & Fimland, 2013). Up to 36% of documented resistance training injuries occur at the shoulder (Kolber et al., 2010).`,
+  tool: { key: 'ready', label: 'Readiness check' },
+  quiz: [
+    { q: 'A client can’t reach the wall overhead without arching. Where do they start?', o: ['Barbell strict press', 'Push press', 'Landmine press', 'Overhead carry'], a: 2, why: 'The landmine press trains pressing without needing full overhead range.' },
+    { q: 'When does "head through the window" happen?', o: ['Before unracking', 'At lockout, after the bar passes the forehead', 'At the bottom of the press', 'Never; the head stays still'], a: 1, why: 'The head comes through once the bar clears the face, finishing biceps by ears.' },
+    { q: 'Leaning back to press usually means…', o: ['Grip is too narrow', 'The client lost their brace and the ribs flared', 'The bar is too light', 'The feet are too wide'], a: 1, why: 'Leaning back is the trunk giving up position.' },
+    { q: 'Why is half-kneeling a useful press regression?', o: ['It allows heavier loads', 'It locks the pelvis, making it hard to arch', 'It removes the core', 'It is easier on the knees'], a: 1, why: 'Half-kneeling sets the pelvis so the lower back can’t compensate.' }
+  ]
+},
+{
+  id: 'm4', num: 4, title: 'Loaded Carries', short: 'Carries', eyebrow: 'Carry it', mins: 70,
+  summary: 'Coach carry posture, breathing and grip, pick the right carry for the goal, and set the dose.',
+  objectives: ['Coach carry posture, breathing and grip', 'Pick the right carry for the goal', 'Set load, distance and time'],
+  video: { len: '7:30', ch: [['0:00','Posture',0],['1:40','Breathing behind the brace',.22],['3:00','The carry family',.4],['5:20','How to dose carries',.7],['6:30','Common faults',.87]] },
+  learn: [
+    { t: 'Posture', b: `<b>Stand tall, ribs stacked over the pelvis, shoulders down and back, eyes forward, short controlled steps.</b>`, cue: '"Walk like you own the room"' },
+    { t: 'Breathing', b: `<b>Breathe shallowly behind the brace</b>, without fully letting it go.` },
+    { t: 'The carry family', b: `<ul><li><b>Farmer’s carry:</b> the base carry, for grip and total-body stiffness</li><li><b>Suitcase carry:</b> one side, trains the trunk to resist leaning</li><li><b>Front-rack carry:</b> upper back and front of the trunk</li><li><b>Overhead carry:</b> shoulder stability (needs the press readiness check first)</li></ul>` },
+    { t: 'Dosing', b: `Dose by <b>distance (20–40 m), time (20–60 s) or load as a percentage of bodyweight.</b> Progress one variable at a time.` },
+    { t: 'Common faults', b: `<ul><li>Leaning toward or away from the load</li><li>Shrugging</li><li>Fast or shuffling steps</li><li>Losing the grip before losing posture</li></ul>` }
+  ],
+  evidence: `McGill et al. (2009) measured trunk muscle activation and spine load during the farmer’s walk, suitcase carry, yoke and other strongman events.`,
+  tool: { key: 'carry', label: 'Carry dose builder' },
+  quiz: [
+    { q: 'Which carry mainly trains the trunk to resist side-bending?', o: ['Farmer’s carry', 'Suitcase carry', 'Front-rack carry', 'Sled drag'], a: 1, why: 'Holding load on one side forces the trunk to resist leaning.' },
+    { q: 'How should a client breathe during a heavy carry?', o: ['Hold their breath for the whole set', 'Shallow breaths behind the brace', 'Deep exhales every step', 'Breathe only through the mouth'], a: 1, why: 'Shallow breathing keeps the brace in place.' },
+    { q: 'What must a client pass before overhead carries?', o: ['Toe touch', 'The overhead readiness check', 'A 1RM deadlift test', 'Nothing'], a: 1, why: 'The overhead carry has the same prerequisite as the press.' },
+    { q: 'What is the typical PS-1 carry distance range?', o: ['5–10 m', '20–40 m', '100–200 m', '400 m'], a: 1, why: 'PS-1 dosing is 20–40 m or 20–60 s.' }
+  ]
+},
+{
+  id: 'm5', num: 5, title: 'Primal Prep', short: 'Primal Prep', eyebrow: 'Prep serves the lift', mins: 50,
+  summary: 'Lead the four-phase Primal Prep warm-up and explain how each drill serves the day’s lift.',
+  objectives: ['Lead the four phases of Primal Prep', 'Explain how each drill serves a lift', 'Shift the emphasis to match the day'],
+  video: { len: '6:00', ch: [['0:00','Raise',0],['1:20','Mobilize',.22],['3:00','Activate',.5],['4:30','Pattern',.75]] },
+  learn: [
+    { t: 'Raise (2–3 min)', b: `<b>Light movement to raise body temperature:</b> bike, rower, sled push or crawling.` },
+    { t: 'Mobilize (3–4 min)', b: `<b>Hips and hamstrings for the deadlift. Thoracic spine and shoulders for the press.</b> The day’s lift decides which block gets the most time.` },
+    { t: 'Activate (2–3 min)', b: `<b>Wake up the muscles that hold position:</b> glute bridges, dead bugs, bear crawl holds, grip squeezes.` },
+    { t: 'Pattern (2 min)', b: `<b>Light or unloaded reps of the day’s main lift</b>, like a dowel hinge or an empty-bar press.` },
+    { t: 'The emphasis rule', b: `Every session runs the full routine. <b>The mobility block gets extra time for that day’s lift.</b> Total time stays around 10–12 minutes.` }
+  ],
+  evidence: `A meta-analysis found warming up improved performance in most of the outcomes studied (Fradkin et al., 2010). Exercise-specific warm-ups are recommended for time-efficient sessions (Iversen et al., 2021).`,
+  tool: { key: 'prep', label: 'Run Primal Prep' },
+  quiz: [
+    { q: 'What is the correct order of Primal Prep?', o: ['Pattern, Raise, Activate, Mobilize', 'Raise, Mobilize, Activate, Pattern', 'Mobilize, Raise, Pattern, Activate', 'Activate, Pattern, Raise, Mobilize'], a: 1, why: 'Raise, Mobilize, Activate, Pattern.' },
+    { q: 'What is the main purpose of the Pattern phase?', o: ['Raising heart rate', 'Static stretching', 'Rehearsing the day’s lift with light or no load', 'Grip fatigue'], a: 2, why: 'Pattern reps groove the exact lift that follows.' },
+    { q: 'On Press day, which mobility area gets the extra time?', o: ['Ankles', 'Thoracic spine and shoulders', 'Wrists', 'Neck'], a: 1, why: 'The press needs upper-back and shoulder range.' },
+    { q: 'About how long should Primal Prep take?', o: ['2–3 minutes', '10–12 minutes', '25–30 minutes', '45 minutes'], a: 1, why: 'The full routine runs 10–12 minutes.' }
+  ]
+},
+{
+  id: 'm6', num: 6, title: 'The Primal Screen', short: 'Screen', eyebrow: 'Know where to start', mins: 70,
+  summary: 'Run the five-test screen, use the results to choose each client’s starting variations, and know when to refer out.',
+  objectives: ['Run the five-test Primal Screen', 'Turn results into starting variations', 'Recognize when to refer to a medical professional'],
+  video: { len: '9:10', ch: [['0:00','Why screen',0],['1:30','Toe touch',.16],['3:00','Wall overhead reach',.33],['4:30','Single-leg stance',.49],['5:45','Grip hold',.63],['7:00','Dowel hinge',.76],['8:20','Scope of practice',.9]] },
+  learn: [
+    { t: 'Toe touch', b: `<b>Pass:</b> fingertips reach the floor with a neutral spine. <b>If not:</b> elevated pull or kettlebell deadlift, plus hamstring mobility.` },
+    { t: 'Wall overhead reach', b: `<b>Pass:</b> arms touch the wall with ribs down. <b>If not:</b> landmine press plus thoracic spine work.` },
+    { t: 'Single-leg stance (30 s, eyes open)', b: `<b>Pass:</b> no loss of balance. <b>If not:</b> two-handed carries only, plus balance work.` },
+    { t: 'Grip hold (30 s)', b: `<b>Pass:</b> holds a dead hang or farmer’s hold for 30 seconds. <b>If not:</b> lighter carries plus grip work.` },
+    { t: 'Bodyweight hinge (dowel on back)', b: `<b>Pass:</b> the dowel keeps three points of contact (head, upper back, tailbone). <b>If not:</b> hinge patterning before any load.` },
+    { t: 'Scope of practice', b: `<b>Pain during any test means referring to a qualified medical professional.</b> PS-1 coaches screen; they do not diagnose.` }
+  ],
+  evidence: `Screening and referral follow Haff and Triplett (2027). The five Primal Screen tests are the system’s own tool.`,
+  tool: { key: 'screen', label: 'Screen a client' },
+  quiz: [
+    { q: 'A client reports pain during the toe touch. What do you do?', o: ['Start with a lighter deadlift', 'Refer to a qualified medical professional', 'Stretch the hamstrings harder', 'Skip that test'], a: 1, why: 'Pain means referral. PS-1 coaches don’t diagnose.' },
+    { q: 'A client fails the wall overhead reach. Starting press?', o: ['Barbell strict press', 'Landmine press', 'Push press', 'Standing DB press'], a: 1, why: 'Landmine plus thoracic spine work.' },
+    { q: 'A client fails the single-leg stance. Carry plan?', o: ['Suitcase carries only', 'Two-handed carries only, plus balance work', 'No carries at all', 'Overhead carries'], a: 1, why: 'Bilateral carries are more stable while balance improves.' },
+    { q: 'What does a passing dowel hinge look like?', o: ['The dowel touches only the head', 'The dowel keeps three points of contact', 'The knees lock straight', 'The client looks at the floor'], a: 1, why: 'Head, upper back and tailbone stay on the dowel.' }
+  ]
+},
+{
+  id: 'm7', num: 7, title: 'The Primal Base Template', short: 'Base Template', eyebrow: 'Put it together', mins: 80,
+  summary: 'Run the 3-day Base Template, progress it safely across a 4-week block, and audit every week.',
+  objectives: ['Run the 3-day Base Template', 'Progress load and use the deload week', 'Audit a week of training'],
+  video: { len: '8:00', ch: [['0:00','Template layout',0],['2:00','Foundation Patterns',.25],['4:20','Progression and deload',.54],['5:50','RPE and reps in reserve',.73],['7:00','The weekly audit',.87]] },
+  learn: [
+    { t: 'Day 1: Pick Up', b: `<b>Deadlift variation 4×5</b>, overhead press 3×8, farmer’s carry 4 × 30 m. Foundation: bench, chest-supported row, split squat.` },
+    { t: 'Day 2: Press', b: `<b>Overhead press variation 4×5</b>, RDL 3×8, suitcase carry 3 × 20 m each side. Foundation: squat, pull-ups, single-arm row.` },
+    { t: 'Day 3: Carry', b: `<b>Carry medley</b> (farmer’s, front-rack, overhead), deadlift 3×3 at moderate weight. Foundation: DB bench or push-ups, pulldown or chin-ups, step-ups.` },
+    { t: 'Progression and effort', b: `<b>Add a small amount of load each week while technique holds. Every fourth week is a deload.</b> Work at RPE 6–8, leaving 2–4 reps in reserve.` },
+    { t: 'The weekly audit', b: `<ul><li>Deadlift, press and carry each appear</li><li>All five Foundation Patterns appear</li><li>Pulling sets ≥ pressing sets</li><li>Every accessory has a Primal purpose</li><li>Primal Prep matches the day’s lift</li></ul>` }
+  ],
+  evidence: `2–3 training days per week is recommended for novices (ACSM, 2009). The RIR-based RPE scale helps adjust daily load (Zourdos et al., 2016; Helms et al., 2016). Deload design draws on expert consensus (Bell et al., 2023).`,
+  tool: { key: 'template', label: 'Build the week' },
+  quiz: [
+    { q: 'How often is a deload week programmed in the Base Template?', o: ['Every week', 'Every fourth week', 'Every 12 weeks', 'Only when injured'], a: 1, why: 'Three build weeks, then a deload.' },
+    { q: 'RPE 6–8 means the client should leave how many reps in reserve?', o: ['0', '2–4', '6–8', '10'], a: 1, why: 'RPE 8 is about 2 reps in reserve; RPE 6 is about 4.' },
+    { q: 'Which rule about pulling and pressing does the weekly audit check?', o: ['Pressing sets should double pulling sets', 'Pulling sets should equal or exceed pressing sets', 'No pulling on Press day', 'Pulling only on Day 3'], a: 1, why: 'Pulling sets ≥ pressing sets, overhead presses included.' },
+    { q: 'Which day of the Base Template includes the squat?', o: ['Day 1: Pick Up', 'Day 2: Press', 'Day 3: Carry', 'None'], a: 1, why: 'The squat variation is on Day 2.' }
+  ]
+}
+];
+
+/* Shuffle answer order once per page load so the correct answer isn't always in the same spot */
+MODULES.forEach(m => m.quiz.forEach(q => {
+  const right = q.o[q.a];
+  const o = q.o.slice();
+  for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; }
+  q.o = o; q.a = o.indexOf(right);
+}));
+
+/* ================= STATE ================= */
+let state = { demo: true, passed: {}, steps: {}, examScore: null, certName: '' };
+try { const s = JSON.parse(localStorage.getItem('ps1demo') || 'null'); if (s) state = Object.assign(state, s); } catch (e) {}
+function save() { try { localStorage.setItem('ps1demo', JSON.stringify(state)); } catch (e) {} }
+const passedCount = () => MODULES.filter(m => state.passed[m.id]).length;
+function unlocked(i) { return state.demo || i === 0 || !!state.passed[MODULES[i - 1].id]; }
+function examUnlocked() { return state.demo || passedCount() === MODULES.length; }
+function stepDone(mid, key) { return (state.steps[mid] || []).includes(key); }
+function markStep(mid, key) {
+  state.steps[mid] = state.steps[mid] || [];
+  if (!state.steps[mid].includes(key)) state.steps[mid].push(key);
+  save();
+  const b = document.querySelector(`.step[data-go="${key}"]`);
+  if (b) b.classList.add('complete');
+}
+let timers = [];
+function clearTimers() { timers.forEach(t => clearInterval(t)); timers = []; cancelAnimationFrame(rafId); }
+let rafId = 0;
+
+/* ================= CHROME ================= */
+function renderChrome(route) {
+  const p = passedCount();
+  document.getElementById('courseLabel').textContent = `${p} of 7 modules passed`;
+  document.getElementById('courseBar').style.width = Math.round(p / 7 * 100) + '%';
+  document.getElementById('demoMode').checked = state.demo;
+  const side = document.getElementById('sidebar');
+  let h = `<h2>Primal Foundations</h2>
+    <a class="nav ${route === 'home' ? 'here' : ''}" href="#home"><div class="dot">⌂</div><div>Course home<small>Overview and progress</small></div></a><div class="sep"></div>`;
+  MODULES.forEach((m, i) => {
+    const pass = state.passed[m.id], open = unlocked(i);
+    const cls = [pass ? 'done' : '', route === m.id ? 'here' : '', open ? '' : 'locked'].join(' ');
+    const sub = pass ? `Passed · ${pass}%` : open ? (route === m.id ? 'In progress' : 'Not started') : 'Locked';
+    h += open
+      ? `<a class="nav ${cls}" href="#${m.id}"><div class="dot">${pass ? '✓' : m.num}</div><div>${m.short}<small>${sub}</small></div></a>`
+      : `<div class="nav ${cls}" aria-disabled="true"><div class="dot">${m.num}</div><div>${m.short}<small>${sub}</small></div></div>`;
+  });
+  h += `<div class="sep"></div>`;
+  const eo = examUnlocked(), ep = state.examScore >= 80;
+  h += eo
+    ? `<a class="nav exam ${ep ? 'done' : ''} ${route === 'exam' ? 'here' : ''}" href="#exam"><div class="dot">${ep ? '✓' : 'EX'}</div><div>PS-1 Final Exam<small>${ep ? 'Certified · ' + state.examScore + '%' : '80% to pass'}</small></div></a>`
+    : `<div class="nav exam locked"><div class="dot">EX</div><div>PS-1 Final Exam<small>Pass all 7 modules</small></div></div>`;
+  side.innerHTML = h;
+}
+
+/* ================= HOME ================= */
+function renderHome(v) {
+  const p = passedCount();
+  const nextIdx = MODULES.findIndex(m => !state.passed[m.id]);
+  const next = nextIdx === -1 ? null : MODULES[nextIdx];
+  v.innerHTML = `
+  <div class="title"><div class="eyebrow">Level 1 of 3 · Self-paced</div>
+    <h1>PS-1: Primal Foundations <span class="demo-tag">Demo</span></h1>
+    <p>Learn to teach and correct the three Primal lifts, lead Primal Prep, screen a new client, and run the Primal Base Template safely.</p></div>
+  <div class="hero" style="margin-top:22px">
+    <div class="panel">
+      <h2>${p === 7 ? (state.examScore >= 80 ? 'You’re certified' : 'Ready for the final exam') : next ? (p ? 'Pick up where you left off' : 'Start the course') : ''}</h2>
+      <p class="lede">${p === 7 ? 'All seven modules are passed. The final exam is 60 questions in the real course, and you need 80% to earn PS-1.' : `Next up: <b>Module ${next.num}, ${next.title}.</b> ${next.summary}`}</p>
+      <a class="btn" href="#${p === 7 ? 'exam' : next.id}">${p === 7 ? 'Go to the exam' : p ? 'Continue' : 'Start Module 1'}</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>7</b><span>modules</span></div>
+      <div class="stat"><b>10–12</b><span>hours, self-paced</span></div>
+      <div class="stat"><b>80%</b><span>to pass every quiz and the exam</span></div>
+      <div class="stat"><b>${p}/7</b><span>modules passed</span></div>
+    </div>
+  </div>
+  <h2 class="h2s">How each module works</h2>
+  <div class="howto">
+    <div><b>1 · Watch</b>A coach walkthrough with chapters you can jump back to.</div>
+    <div><b>2 · Learn</b>Key points, cues and the research behind them.</div>
+    <div><b>3 · Apply</b>A hands-on tool: spot faults, screen a client, dose a carry.</div>
+    <div><b>4 · Check</b>A short quiz. Pass with 80% to unlock the next module.</div>
+  </div>
+  <h2 class="h2s">Modules</h2>
+  <div class="mgrid">
+    ${MODULES.map((m, i) => {
+      const pass = state.passed[m.id], open = unlocked(i);
+      const pill = pass ? `<span class="pill done">Passed ${pass}%</span>` : open ? `<span class="pill go">${(state.steps[m.id] || []).length ? 'In progress' : 'Open'}</span>` : `<span class="pill">Locked</span>`;
+      const inner = `<div class="num">MODULE ${m.num}</div><h3>${m.title}</h3><p>${m.summary}</p><div class="meta"><span>~${m.mins} min · ${m.tool.label}</span>${pill}</div>`;
+      return open ? `<a class="mcard" href="#${m.id}">${inner}</a>` : `<div class="mcard locked">${inner}</div>`;
+    }).join('')}
+    ${(() => { const eo = examUnlocked(); const inner = `<div><div class="num">FINAL EXAM</div><h3>PS-1 Certification Exam</h3><p>60 questions in 90 minutes in the real course (15 in this demo). 80% to pass.</p></div>${state.examScore >= 80 ? '<span class="pill done">Certified</span>' : eo ? '<span class="btn sm">Open exam</span>' : '<span class="pill">Pass all 7 modules</span>'}`;
+      return eo ? `<a class="mcard examcard" href="#exam">${inner}</a>` : `<div class="mcard examcard locked">${inner}</div>`; })()}
+  </div>
+  <p class="note">Demo mode: content is a rough draft, videos and clips are placeholders, and progress is kept only in this browser. Turn off Demo mode at the top to experience the real gating, where each module unlocks after the previous quiz is passed. <button class="btn ghost sm" id="resetAll" type="button" style="margin-left:6px">Reset progress</button></p>`;
+  document.getElementById('resetAll').onclick = () => { state = { demo: state.demo, passed: {}, steps: {}, examScore: null, certName: '' }; save(); route(); };
+}
+
+/* ================= MODULE PAGE ================= */
+function renderModule(v, m) {
+  const steps = [['watch', 'Watch'], ['learn', 'Learn'], [m.tool.key, m.tool.label]];
+  if (m.tool2) steps.push([m.tool2.key, m.tool2.label]);
+  steps.push(['quiz', 'Knowledge check']);
+  const idx = MODULES.indexOf(m);
+  v.innerHTML = `
+  <div class="title"><div class="eyebrow">Module ${m.num} · ${m.eyebrow}</div><h1>${m.title}</h1><p>${m.summary}</p>
+    <ul class="objectives">${m.objectives.map(o => `<li>${o}</li>`).join('')}</ul></div>
+  <nav class="steps" aria-label="Lesson steps">${steps.map(([k, l], i) => `<button type="button" class="step ${i === 0 ? 'active' : ''} ${stepDone(m.id, k) || (k === 'quiz' && state.passed[m.id]) ? 'complete' : ''}" data-go="${k}"><span class="n">${i + 1}</span>${l}</button>`).join('')}</nav>
+  ${steps.map(([k, l], i) => `<section class="panel ${i === 0 ? '' : 'hidden'}" data-sec="${k}"></section>`).join('')}
+  <p class="note">Rough draft content. ${idx < 6 ? `Next: <a href="#${MODULES[idx + 1].id}">Module ${idx + 2}, ${MODULES[idx + 1].title}</a>.` : `Next: <a href="#exam">the PS-1 Final Exam</a>.`}</p>`;
+  const go = k => {
+    v.querySelectorAll('section[data-sec]').forEach(s => s.classList.toggle('hidden', s.dataset.sec !== k));
+    v.querySelectorAll('.step').forEach(b => b.classList.toggle('active', b.dataset.go === k));
+    v.querySelector('.steps').scrollIntoView({ block: 'nearest' });
+  };
+  v.querySelectorAll('.step').forEach(b => b.onclick = () => go(b.dataset.go));
+  const sec = k => v.querySelector(`section[data-sec="${k}"]`);
+  const nextBtn = (el, i) => { if (i < steps.length - 1) { const d = document.createElement('div'); d.className = 'stepnext'; d.innerHTML = `<button type="button" class="btn ghost sm">Next: ${steps[i + 1][1]} →</button>`; d.firstChild.onclick = () => go(steps[i + 1][0]); el.appendChild(d); } };
+
+  renderWatch(sec('watch'), m); nextBtn(sec('watch'), 0);
+  renderLearn(sec('learn'), m); nextBtn(sec('learn'), 1);
+  TOOLS[m.tool.key](sec(m.tool.key), () => markStep(m.id, m.tool.key)); nextBtn(sec(m.tool.key), 2);
+  if (m.tool2) { TOOLS[m.tool2.key](sec(m.tool2.key), () => markStep(m.id, m.tool2.key)); nextBtn(sec(m.tool2.key), 3); }
+  renderModuleQuiz(sec('quiz'), m, idx);
+}
+
+function renderWatch(el, m) {
+  el.innerHTML = `<h2>Watch the lesson</h2><p class="lede">The coach walkthrough for this module. Chapters let learners jump back to one part when they review for the final exam.</p>
+    <div class="video"><button class="play" type="button" aria-label="Play lesson video"><svg width="28" height="32" viewBox="0 0 28 32"><path d="M0 0 L28 16 L0 32Z" fill="#1a0b02"/></svg></button>
+    <div class="label">${m.title}<small>Video placeholder · ${m.video.len}</small></div><div class="track"><i></i></div></div>
+    <ol class="chapters">${m.video.ch.map(c => `<li data-at="${c[2]}"><time>${c[0]}</time>${c[1]}</li>`).join('')}</ol>`;
+  const lis = [...el.querySelectorAll('.chapters li')], track = el.querySelector('.track i');
+  el.querySelector('.play').onclick = function () {
+    this.style.display = 'none';
+    let p = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 0;
+    const tick = () => {
+      p = Math.min(1, p + 0.007);
+      track.style.width = (p * 100) + '%';
+      lis.forEach((li, i) => { const nx = lis[i + 1] ? +lis[i + 1].dataset.at : 1.01; li.classList.toggle('on', p >= +li.dataset.at && p < nx); });
+      if (p < 1) rafId = requestAnimationFrame(tick); else markStep(m.id, 'watch');
+    };
+    tick();
+  };
+}
+
+function renderLearn(el, m) {
+  el.innerHTML = `<h2>Learn</h2><p class="lede">Open each card. All of them need to be opened for this step to count as complete.</p>
+    <div class="setup">${m.learn.map(c => `<details><summary>${c.t}</summary><div class="body">${c.b}</div>${c.cue ? `<span class="cue">${c.cue}</span>` : ''}</details>`).join('')}</div>
+    <div class="evidence"><b>Evidence base:</b> ${m.evidence}</div>`;
+  const det = [...el.querySelectorAll('details')];
+  det.forEach(d => d.addEventListener('toggle', () => { if (d.open) d.dataset.seen = 1; if (det.every(x => x.dataset.seen)) markStep(m.id, 'learn'); }));
+}
+
+/* ================= QUIZ COMPONENT ================= */
+function quizHTML(qs, prefix, showMod) {
+  return qs.map((item, qi) => `<div class="q" data-q="${qi}">${showMod ? `<span class="tagm">Module ${item.mod}</span>` : ''}<h3>${qi + 1}. ${item.q}</h3>
+    <div class="opts">${item.o.map((o, oi) => `<label for="${prefix}${qi}o${oi}"><input type="radio" name="${prefix}${qi}" id="${prefix}${qi}o${oi}" value="${oi}">${o}</label>`).join('')}</div>
+    <div class="why">${item.why}</div></div>`).join('');
+}
+function gradeQuiz(form, qs, prefix) {
+  const f = new FormData(form);
+  let score = 0, answered = 0;
+  qs.forEach((item, qi) => { const val = f.get(prefix + qi); if (val !== null) { answered++; if (+val === item.a) score++; } });
+  return { score, answered, pct: Math.round(score / qs.length * 100) };
+}
+function revealQuiz(form, qs) {
+  qs.forEach((item, qi) => {
+    const box = form.querySelector(`[data-q="${qi}"]`);
+    box.classList.add('graded');
+    box.querySelectorAll('label').forEach((l, oi) => { const inp = l.querySelector('input'); inp.disabled = true; if (oi === item.a) l.classList.add('correct'); else if (inp.checked) l.classList.add('wrong'); });
+  });
+}
+
+function renderModuleQuiz(el, m, idx) {
+  const draw = () => {
+    el.innerHTML = `<h2>Knowledge check</h2><p class="lede">${m.quiz.length} questions. Score 80% or higher to pass${idx < 6 ? ` and unlock Module ${idx + 2}` : ' and finish the coursework'}. Retake as many times as you need.</p>
+      ${state.passed[m.id] ? `<div class="result pass" style="margin:0 0 16px">Already passed with ${state.passed[m.id]}%. You can retake it for practice.</div>` : ''}
+      <form class="qform">${quizHTML(m.quiz, m.id + 'q', false)}</form>
+      <div class="actions"><button class="btn" type="button" data-act="submit">Submit answers</button></div><div class="qres" aria-live="polite"></div>`;
+    const form = el.querySelector('.qform'), res = el.querySelector('.qres');
+    el.querySelector('[data-act="submit"]').onclick = function () {
+      const g = gradeQuiz(form, m.quiz, m.id + 'q');
+      if (g.answered < m.quiz.length) { res.innerHTML = `<div class="result fail">Answer all ${m.quiz.length} questions first. You've answered ${g.answered}.</div>`; return; }
+      revealQuiz(form, m.quiz);
+      this.remove();
+      if (g.pct >= 80) {
+        state.passed[m.id] = Math.max(state.passed[m.id] || 0, g.pct); save();
+        el.parentElement.querySelector('.step[data-go="quiz"]').classList.add('complete');
+        const nx = idx < 6 ? `<a class="btn" href="#${MODULES[idx + 1].id}">Start Module ${idx + 2}</a>` : `<a class="btn" href="#exam">Go to the final exam</a>`;
+        res.innerHTML = `<div class="result pass"><big>${g.pct}% · Passed</big>${idx < 6 ? `Module ${idx + 2}: ${MODULES[idx + 1].title} is unlocked.` : 'All coursework is complete. The final exam is unlocked once every module is passed.'}</div><div class="actions">${nx}</div>`;
+        renderChrome(m.id);
+      } else {
+        res.innerHTML = `<div class="result fail"><big>${g.pct}% · Not yet</big>You need 80%. Review the explanations, then retake.</div><div class="actions"><button class="btn ghost" type="button" data-act="retry">Retake</button></div>`;
+        res.querySelector('[data-act="retry"]').onclick = draw;
+      }
+    };
+  };
+  draw();
+}
+
+/* ================= TOOLS ================= */
+const TOOLS = {};
+
+/* M1: everyday sort */
+TOOLS.sort = (el, done) => {
+  const tasks = [
+    ['Lifting a 40 lb bag of dog food off the garage floor', 'pick', 'Load starts on the floor: a hinge.'],
+    ['Putting a suitcase in the overhead bin on a plane', 'press', 'Load goes from shoulder height to overhead: a press.'],
+    ['Bringing all the groceries in from the car in one trip', 'carry', 'Load held while walking: a carry.'],
+    ['Picking a toddler up off the floor', 'pick', 'A hinge, often with an awkward, moving load.'],
+    ['Storing boxes on the top shelf in the garage', 'press', 'Pressing a load up above the head.'],
+    ['Carrying a bag of mulch across the yard', 'carry', 'Grip, trunk and steady gait under load.'],
+    ['Lifting a full laundry basket from the floor', 'pick', 'A floor-to-standing hinge.'],
+    ['Hauling two full water jugs from the truck to the house', 'carry', 'A farmer’s carry in real life.']
+  ];
+  const labels = { pick: 'Pick up', press: 'Press', carry: 'Carry' };
+  const solved = new Set();
+  el.innerHTML = `<h2>Everyday sort</h2><p class="lede">Match each everyday task to the Primal movement it depends on. This is how you’ll explain the system to clients.</p>
+    <div class="tally">${Object.keys(labels).map(k => `<span>${labels[k]}<b data-t="${k}">0</b></span>`).join('')}</div>
+    <div class="sort">${tasks.map((t, i) => `<div class="task" data-i="${i}"><div>${t[0]}</div><div class="btns">${Object.keys(labels).map(k => `<button type="button" data-k="${k}">${labels[k]}</button>`).join('')}</div><div class="why"></div></div>`).join('')}</div>`;
+  el.querySelectorAll('.task').forEach(row => {
+    const t = tasks[+row.dataset.i];
+    row.querySelectorAll('button').forEach(b => b.onclick = () => {
+      if (row.classList.contains('solved')) return;
+      if (b.dataset.k === t[1]) {
+        b.classList.add('correct'); row.classList.add('solved');
+        row.querySelector('.why').innerHTML = `<b class="ok">Right.</b> ${t[2]}`;
+        solved.add(row.dataset.i);
+        const c = el.querySelector(`[data-t="${t[1]}"]`); c.textContent = +c.textContent + 1;
+        if (solved.size === tasks.length) done();
+      } else { b.classList.add('wrong'); row.querySelector('.why').innerHTML = `<b class="no">Not quite.</b> Where does the load start, and where does it end up?`; }
+    });
+  });
+};
+
+/* M2: fault finder */
+TOOLS.faults = (el, done) => {
+  const clips = [
+    { pose: { knee: [134,150], hip: [104,92], sh: [158,112], head: [172,108], bar: [150,160] }, a: 0, fix: 'The hips rose before the bar left the floor, which turns the pull into a stiff-leg deadlift. Pull the slack out first and cue "push the floor away" so the hips and shoulders rise together.' },
+    { pose: { knee: [138,140], hip: [96,116], sh: [146,104], head: [160,104], bar: [142,162], spine: [128,72] }, a: 1, fix: 'The lower back is rounded under load. Rebuild the brace and set the lats before the pull. If the client can’t hold position from the floor, use an elevated pull or kettlebell deadlift.' },
+    { pose: { knee: [138,140], hip: [96,112], sh: [160,92], head: [174,84], bar: [176,162] }, a: 2, fix: 'The bar has drifted away from the body, so the lower back works against a longer lever. Cue "drag the bar up your legs," set the lats, and start with the bar over midfoot.' }
+  ];
+  const opts = ['Hips rising before the bar moves', 'Rounded lower back', 'Bar drifting away from the body', 'Hyperextending at lockout'];
+  let ci = 0; const solved = new Set();
+  el.innerHTML = `<h2>Fault finder</h2><p class="lede">Look at each lifter and pick the main fault. In the real course these are short clips of real lifters.</p>
+    <div class="clipnav"></div><div class="ff"><svg viewBox="0 0 260 210" role="img" aria-label="Side view of a lifter at the bar"></svg><div><div class="opts"></div><div class="feedback" aria-live="polite"></div></div></div>`;
+  const svg = el.querySelector('svg'), nav = el.querySelector('.clipnav'), ob = el.querySelector('.opts'), fb = el.querySelector('.feedback');
+  const ln = (a, b, w = 7) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#f2eee8" stroke-width="${w}" stroke-linecap="round"/>`;
+  function draw(p) {
+    const spine = p.spine ? `<path d="M${p.hip[0]} ${p.hip[1]} Q${p.spine[0]} ${p.spine[1]} ${p.sh[0]} ${p.sh[1]}" stroke="#ff6a13" stroke-width="8" fill="none" stroke-linecap="round"/>` : ln(p.hip, p.sh, 8);
+    svg.innerHTML = `<line x1="10" y1="196" x2="250" y2="196" stroke="#2d2a26" stroke-width="2"/><line x1="126" y1="20" x2="126" y2="196" stroke="#2d2a26" stroke-dasharray="4 5"/>
+      <text x="130" y="30" fill="#a39d94" font-size="10" font-family="Barlow, sans-serif">midfoot</text><path d="M108 194 L146 194" stroke="#a39d94" stroke-width="6" stroke-linecap="round"/>
+      ${ln([126,186], p.knee)}${ln(p.knee, p.hip)}${spine}${ln(p.sh, p.bar, 5)}<circle cx="${p.head[0]}" cy="${p.head[1]}" r="10" fill="#f2eee8"/>
+      <circle cx="${p.bar[0]}" cy="${p.bar[1] + 14}" r="20" fill="none" stroke="#ff6a13" stroke-width="5"/><circle cx="${p.bar[0]}" cy="${p.bar[1] + 14}" r="3" fill="#ff6a13"/>`;
+  }
+  function render() {
+    nav.innerHTML = clips.map((c, i) => `<button type="button" class="${i === ci ? 'on' : ''} ${solved.has(i) ? 'right' : ''}">Clip ${i + 1}</button>`).join('');
+    [...nav.children].forEach((b, i) => b.onclick = () => { ci = i; render(); });
+    draw(clips[ci].pose);
+    ob.innerHTML = opts.map(o => `<button type="button" class="opt">${o}</button>`).join('');
+    fb.innerHTML = '';
+    [...ob.children].forEach((b, i) => b.onclick = () => {
+      [...ob.children].forEach(x => x.classList.remove('correct', 'wrong'));
+      if (i === clips[ci].a) { b.classList.add('correct'); solved.add(ci); nav.children[ci].classList.add('right'); fb.innerHTML = `<b class="ok">Correct.</b> ${clips[ci].fix}`; if (solved.size === clips.length) done(); }
+      else { b.classList.add('wrong'); fb.innerHTML = `<b class="no">Not quite.</b> Look at where the hips, back and bar sit relative to the midfoot line.`; }
+    });
+  }
+  render();
+};
+
+/* M2: deadlift picker */
+TOOLS.dlpick = (el, done) => {
+  el.innerHTML = `<h2>Pick the starting variation</h2><p class="lede">Enter a client’s screen results. The tool shows their entry point on the deadlift ladder and why.</p>
+  <div class="two"><form>
+    <fieldset><legend>Toe touch</legend><div class="seg"><input type="radio" name="toe" id="dl-tp" value="pass" checked><label for="dl-tp">Pass</label><input type="radio" name="toe" id="dl-tf" value="fail"><label for="dl-tf">Fail</label></div></fieldset>
+    <fieldset><legend>Dowel hinge</legend><div class="seg"><input type="radio" name="hinge" id="dl-hp" value="pass" checked><label for="dl-hp">3 points of contact</label><input type="radio" name="hinge" id="dl-hf" value="fail"><label for="dl-hf">Loses contact</label></div></fieldset>
+    <fieldset><legend>Training experience</legend><div class="seg"><input type="radio" name="exp" id="dl-en" value="new" checked><label for="dl-en">New</label><input type="radio" name="exp" id="dl-es" value="some"><label for="dl-es">6–12 months</label><input type="radio" name="exp" id="dl-ex" value="exp"><label for="dl-ex">1+ years</label></div></fieldset>
+    <fieldset><legend>Equipment</legend><div class="seg"><input type="radio" name="eq" id="dl-qf" value="full" checked><label for="dl-qf">Full gym</label><input type="radio" name="eq" id="dl-qk" value="kb"><label for="dl-qk">Kettlebells only</label></div></fieldset>
+  </form><div class="rx" aria-live="polite"><div class="tag">Start here</div><h3></h3><p class="w1"></p><p class="w2"></p><div class="ladder"></div></div></div>`;
+  const form = el.querySelector('form');
+  let n = 0;
+  const upd = () => {
+    const f = new FormData(form); let name, why, nx;
+    if (f.get('hinge') === 'fail') { name = 'Hinge patterning'; why = 'The client can’t hinge with a neutral spine yet. Patterns before load.'; nx = 'Next: dowel hinges until the screen is passed, then kettlebell deadlifts.'; }
+    else if (f.get('eq') === 'kb') { name = 'Kettlebell deadlift'; why = 'With kettlebells only, this is the base hinge.'; nx = 'Next: heavier bells, then single-leg RDLs.'; }
+    else if (f.get('toe') === 'fail') { name = 'Elevated pull'; why = 'Limited hamstring and hip mobility means the floor is too far away. Raising the bar keeps the spine neutral.'; nx = 'Next: lower the blocks as the toe touch improves, then the trap bar.'; }
+    else if (f.get('exp') === 'new') { name = 'Kettlebell deadlift'; why = 'Passed the screen but new to lifting. Groove the hinge with a load between the feet.'; nx = 'Next: trap bar once setup is consistent.'; }
+    else if (f.get('exp') === 'some') { name = 'Trap bar deadlift'; why = 'Heavy loads with lower peak lumbar and hip moments (Swinton et al., 2011).'; nx = 'Next: conventional deadlift after a solid trap bar block.'; }
+    else { name = 'Conventional deadlift'; why = 'An experienced client who passed every screen can start with the barbell.'; nx = 'Programming: RDLs as the secondary hinge on Press day.'; }
+    el.querySelector('.rx h3').textContent = name; el.querySelector('.w1').textContent = why; el.querySelector('.w2').textContent = nx;
+    el.querySelector('.ladder').innerHTML = LADDER_DL.map(l => `<span class="${l === name ? 'here' : ''}">${l}</span>`).join('');
+  };
+  form.onchange = () => { upd(); if (++n >= 2) done(); };
+  upd();
+};
+
+/* M3: overhead readiness */
+TOOLS.ready = (el, done) => {
+  el.innerHTML = `<h2>Overhead readiness check</h2><p class="lede">Record what you see during the wall overhead reach. The tool gives the press variation to start with.</p>
+  <div class="two"><form>
+    <fieldset><legend>Arms touch the wall overhead?</legend><div class="seg"><input type="radio" name="reach" id="r-ry" value="y" checked><label for="r-ry">Yes</label><input type="radio" name="reach" id="r-rn" value="n"><label for="r-rn">No</label></div></fieldset>
+    <fieldset><legend>Ribs flare during the reach?</legend><div class="seg"><input type="radio" name="ribs" id="r-bn" value="n" checked><label for="r-bn">No</label><input type="radio" name="ribs" id="r-by" value="y"><label for="r-by">Yes</label></div></fieldset>
+    <fieldset><legend>Lower back arches?</legend><div class="seg"><input type="radio" name="arch" id="r-an" value="n" checked><label for="r-an">No</label><input type="radio" name="arch" id="r-ay" value="y"><label for="r-ay">Yes</label></div></fieldset>
+    <fieldset><legend>Shoulder pain overhead?</legend><div class="seg"><input type="radio" name="pain" id="r-pn" value="n" checked><label for="r-pn">No</label><input type="radio" name="pain" id="r-py" value="y"><label for="r-py">Yes</label></div></fieldset>
+    <fieldset><legend>Training experience</legend><div class="seg"><input type="radio" name="exp" id="r-en" value="new" checked><label for="r-en">New</label><input type="radio" name="exp" id="r-ex" value="exp"><label for="r-ex">1+ years</label></div></fieldset>
+  </form><div class="rx" aria-live="polite"><div class="tag">Start here</div><h3></h3><p class="w1"></p><p class="w2"></p><div class="ladder"></div></div></div>`;
+  const form = el.querySelector('form'), rx = el.querySelector('.rx');
+  let n = 0;
+  const upd = () => {
+    const f = new FormData(form); let name, why, nx, alert = false;
+    if (f.get('pain') === 'y') { alert = true; name = 'Refer out'; why = 'Pain overhead is outside PS-1 scope. Refer to a qualified medical professional before any overhead loading.'; nx = 'Meanwhile: train the deadlift and two-handed carries if they are pain-free.'; }
+    else if (f.get('reach') === 'n') { name = 'Landmine press'; why = 'The client doesn’t have full overhead range yet. The landmine trains the press on an angle.'; nx = 'Add: open books and wall slides in Primal Prep. Retest every 4 weeks.'; }
+    else if (f.get('ribs') === 'y' || f.get('arch') === 'y') { name = 'Half-kneeling single-arm press'; why = 'They have the range but cheat with the trunk. Half-kneeling locks the pelvis so the lower back can’t arch.'; nx = 'Next: standing DB press once they can hold ribs down at the top.'; }
+    else if (f.get('exp') === 'new') { name = 'Standing DB press'; why = 'Passed the check and new to pressing. Dumbbells let each arm find its own path, with high deltoid activation (Saeterbakken & Fimland, 2013).'; nx = 'Next: barbell strict press.'; }
+    else { name = 'Barbell strict press'; why = 'Passed every part of the check with training experience.'; nx = 'Programming: 4×5 on Press day, 3×8 as the Day 1 secondary.'; }
+    rx.classList.toggle('alert', alert);
+    rx.querySelector('.tag').textContent = alert ? 'Stop' : 'Start here';
+    rx.querySelector('h3').textContent = name; rx.querySelector('.w1').textContent = why; rx.querySelector('.w2').textContent = nx;
+    rx.querySelector('.ladder').innerHTML = alert ? '' : LADDER_PR.map(l => `<span class="${l === name ? 'here' : ''}">${l}</span>`).join('');
+  };
+  form.onchange = () => { upd(); if (++n >= 2) done(); };
+  upd();
+};
+
+/* M4: carry dose builder */
+TOOLS.carry = (el, done) => {
+  const goals = {
+    grip: { name: 'Farmer’s carry', pct: [.5, .75, 1], each: 'total, split between two hands', cue: 'Tall, shoulders down, crush the handles.' },
+    trunk: { name: 'Suitcase carry', pct: [.2, .3, .4], each: 'in one hand; switch sides each set', cue: 'Don’t lean. Stay level like you’re carrying nothing.' },
+    upper: { name: 'Front-rack carry', pct: [.25, .35, .5], each: 'total, two kettlebells in the rack', cue: 'Elbows tucked, ribs down, breathe behind the brace.' },
+    shoulder: { name: 'Overhead carry (single-arm)', pct: [.1, .15, .2], each: 'in one hand overhead; switch sides', cue: 'Biceps by the ear, lock out, walk slow.' }
+  };
+  const dist = [20, 30, 40], sets = [3, 4, 4], rest = ['60–90 s', '90 s', '2 min'];
+  el.innerHTML = `<h2>Carry dose builder</h2><p class="lede">Set a client’s bodyweight, goal and level to get a starting carry prescription.</p>
+  <div class="two"><form>
+    <fieldset><label class="flabel" for="c-bw">Bodyweight (lb)</label><input class="field" type="number" id="c-bw" name="bw" value="185" min="80" max="400" step="5"></fieldset>
+    <fieldset><legend>Goal</legend><div class="seg">
+      <input type="radio" name="goal" id="c-g1" value="grip" checked><label for="c-g1">Grip and total body</label>
+      <input type="radio" name="goal" id="c-g2" value="trunk"><label for="c-g2">Trunk: resist leaning</label>
+      <input type="radio" name="goal" id="c-g3" value="upper"><label for="c-g3">Upper back and front trunk</label>
+      <input type="radio" name="goal" id="c-g4" value="shoulder"><label for="c-g4">Shoulder stability</label></div></fieldset>
+    <fieldset><legend>Level</legend><div class="seg"><input type="radio" name="lvl" id="c-l0" value="0" checked><label for="c-l0">Beginner</label><input type="radio" name="lvl" id="c-l1" value="1"><label for="c-l1">Intermediate</label><input type="radio" name="lvl" id="c-l2" value="2"><label for="c-l2">Advanced</label></div></fieldset>
+    <fieldset><legend>Passed the overhead readiness check?</legend><div class="seg"><input type="radio" name="oh" id="c-oy" value="y" checked><label for="c-oy">Yes</label><input type="radio" name="oh" id="c-on" value="n"><label for="c-on">No</label></div></fieldset>
+  </form><div class="rx" aria-live="polite"><div class="tag">Prescription</div><h3></h3><dl class="kv"></dl><p class="cuep"></p><p style="font-size:13px">Load percentages are demo values. Final numbers come from the Primal Standards.</p></div></div>`;
+  const form = el.querySelector('form'), rx = el.querySelector('.rx');
+  let n = 0;
+  const r5 = x => Math.round(x / 5) * 5;
+  const upd = () => {
+    const f = new FormData(form); const bw = Math.max(80, Math.min(400, +f.get('bw') || 185)); const lvl = +f.get('lvl');
+    let g = goals[f.get('goal')], warn = '';
+    if (f.get('goal') === 'shoulder' && f.get('oh') === 'n') { g = goals.upper; warn = 'Overhead carries need a passed readiness check, so this switches to the front-rack carry.'; }
+    const load = r5(bw * g.pct[lvl]);
+    const two = g.each.startsWith('total');
+    rx.querySelector('h3').textContent = g.name;
+    rx.querySelector('.kv').innerHTML = `<dt>Load</dt><dd class="big">${load} lb</dd><dt></dt><dd style="font-weight:500;color:var(--muted)">${g.each}${two ? ` (${r5(load / 2)} lb per hand)` : ''}</dd>
+      <dt>Distance</dt><dd>${dist[lvl]} m</dd><dt>Sets</dt><dd>${sets[lvl]}</dd><dt>Rest</dt><dd>${rest[lvl]}</dd><dt>% bodyweight</dt><dd>${Math.round(g.pct[lvl] * 100)}%</dd>`;
+    rx.querySelector('.cuep').innerHTML = (warn ? `<b class="no">Note:</b> ${warn}<br>` : '') + `<b>Cue:</b> ${g.cue}`;
+  };
+  form.oninput = () => { upd(); if (++n >= 3) done(); };
+  upd();
+};
+
+/* M5: Primal Prep runner */
+TOOLS.prep = (el, done) => {
+  const P = {
+    pick: { raise: [['Bike or rower', 90, 'Raises temperature'], ['Bear crawl', 30, 'Shoulders and trunk']],
+      mob: [['90/90 hip switches', 60, 'Hip rotation for the setup', 1], ['Hamstring floss', 60, 'Hamstring length for the hinge', 1], ['World’s greatest stretch', 60, 'Hips and upper back', 1], ['Open books', 30, 'Upper back']],
+      act: [['Glute bridge', 40, 'Hip extension at lockout'], ['Dead bug', 40, 'Ribs down under load'], ['Grip squeezes', 30, 'Grip for the bar']],
+      pat: [['Dowel hinge × 8', 45, 'Rehearses the hip hinge'], ['Light KB deadlift × 5', 45, 'First loaded reps of the day']] },
+    press: { raise: [['Bike or rower', 90, 'Raises temperature'], ['Bear crawl', 30, 'Shoulders and trunk']],
+      mob: [['Open books', 60, 'Thoracic rotation for a clean bar path', 1], ['Wall slides', 60, 'Overhead range with ribs down', 1], ['Band pull-aparts', 60, 'Upper back for a stable base', 1], ['90/90 hip switches', 30, 'Hips']],
+      act: [['Dead bug', 40, 'Ribs down while pressing'], ['Glute bridge', 40, 'Glutes tight under the bar'], ['Bear crawl hold', 30, 'Shoulder stability']],
+      pat: [['Empty-bar press × 8', 45, 'Rehearses the bar path'], ['Light press × 5', 45, 'First loaded reps']] },
+    carry: { raise: [['Sled push', 60, 'Raises temperature'], ['Bear crawl', 60, 'Shoulders, trunk, gait']],
+      mob: [['World’s greatest stretch', 45, 'Hips and upper back'], ['90/90 hip switches', 45, 'Hip control for gait'], ['Wall slides', 45, 'Overhead position for overhead carries'], ['Band pull-aparts', 45, 'Shoulders down and back']],
+      act: [['Bear crawl hold', 45, 'Trunk stiffness', 1], ['Grip squeezes', 45, 'Grip for the medley', 1], ['Dead bug', 30, 'Ribs over pelvis']],
+      pat: [['Light farmer’s walk 2 × 20 m', 60, 'Rehearses carry posture']] }
+  };
+  const phases = [['raise', 'Raise'], ['mob', 'Mobilize'], ['act', 'Activate'], ['pat', 'Pattern']];
+  let day = 'pick', flat = [], cur = -1, left = 0, timer = null;
+  el.innerHTML = `<h2>Run Primal Prep</h2><p class="lede">Pick the day. The routine shifts its emphasis to match the main lift. Press Start to run it as a guided timer.</p>
+    <fieldset><legend>Today’s main lift</legend><div class="seg"><input type="radio" name="pday" id="p-1" value="pick" checked><label for="p-1">Day 1: Pick Up</label><input type="radio" name="pday" id="p-2" value="press"><label for="p-2">Day 2: Press</label><input type="radio" name="pday" id="p-3" value="carry"><label for="p-3">Day 3: Carry</label></div></fieldset>
+    <div class="two"><div class="prep"></div><div class="runner"><div class="tag" style="font-family:var(--display);color:var(--accent);letter-spacing:.1em;font-size:13px;text-transform:uppercase">Total <span class="tot"></span></div><div class="clock">0:00</div><div class="cur">Ready</div><div class="why2">Press Start to begin.</div><div class="rbtns"><button type="button" class="btn sm" data-r="start">Start</button><button type="button" class="btn ghost sm" data-r="skip">Skip drill</button><button type="button" class="btn ghost sm" data-r="reset">Reset</button></div></div></div>`;
+  const list = el.querySelector('.prep'), clock = el.querySelector('.clock'), curEl = el.querySelector('.cur'), why = el.querySelector('.why2');
+  const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  function build() {
+    flat = []; let html = '';
+    phases.forEach(([k, l]) => {
+      const ds = P[day][k]; const secs = ds.reduce((a, d) => a + d[1], 0);
+      html += `<div class="phase"><h3>${l}<small>${fmt(secs)}</small></h3>${ds.map(d => { flat.push(d); return `<div class="drill ${d[3] ? 'emph' : ''}" data-i="${flat.length - 1}"><span class="d">${d[0]}</span><span class="t">${fmt(d[1])}</span><span class="s">Serves: ${d[2]}</span></div>`; }).join('')}</div>`;
+    });
+    list.innerHTML = html;
+    el.querySelector('.tot').textContent = fmt(flat.reduce((a, d) => a + d[1], 0));
+    stop(); cur = -1; clock.textContent = fmt(flat[0][1]); curEl.textContent = 'Ready'; why.textContent = 'Press Start to begin.';
+  }
+  function stop() { if (timer) { clearInterval(timer); timers = timers.filter(t => t !== timer); timer = null; } }
+  function show() {
+    list.querySelectorAll('.drill').forEach((d, i) => { d.classList.toggle('now', i === cur); d.classList.toggle('past', i < cur); });
+    if (cur >= flat.length) { stop(); clock.textContent = '0:00'; curEl.textContent = 'Prep complete'; why.textContent = 'Time for the main lift.'; done(); return; }
+    curEl.textContent = flat[cur][0]; why.textContent = 'Serves: ' + flat[cur][2]; clock.textContent = fmt(left);
+  }
+  function next() { cur++; left = cur < flat.length ? flat[cur][1] : 0; show(); }
+  el.querySelector('[data-r="start"]').onclick = () => {
+    if (timer) return;
+    if (cur < 0 || cur >= flat.length) { cur = -1; next(); }
+    timer = setInterval(() => { left--; if (left <= 0) next(); else clock.textContent = fmt(left); }, 1000);
+    timers.push(timer);
+  };
+  el.querySelector('[data-r="skip"]').onclick = () => { if (cur < 0) { cur = -1; } next(); };
+  el.querySelector('[data-r="reset"]').onclick = build;
+  el.querySelectorAll('input[name="pday"]').forEach(i => i.onchange = () => { day = i.value; build(); });
+  build();
+};
+
+/* M6: screen recorder */
+TOOLS.screen = (el, done) => {
+  const tests = [['toe', 'Toe touch'], ['wall', 'Wall overhead reach'], ['sls', 'Single-leg stance (30 s)'], ['grip', 'Grip hold (30 s)'], ['hinge', 'Dowel hinge']];
+  el.innerHTML = `<h2>Screen a client</h2><p class="lede">Record a new client’s Primal Screen. The tool builds their starting profile for all three lifts.</p>
+  <div class="two"><form>
+    <fieldset><label class="flabel" for="s-name">Client name</label><input class="field" id="s-name" name="name" value="Jordan M."></fieldset>
+    ${tests.map(([k, l], i) => `<fieldset><legend>${l}</legend><div class="seg"><input type="radio" name="${k}" id="s-${k}p" value="p" ${i === 1 ? '' : 'checked'}><label for="s-${k}p">Pass</label><input type="radio" name="${k}" id="s-${k}f" value="f" ${i === 1 ? 'checked' : ''}><label for="s-${k}f">Fail</label></div></fieldset>`).join('')}
+    <fieldset><div class="checks"><label for="s-pain"><input type="checkbox" id="s-pain" name="pain"> Client reported pain during a test</label></div></fieldset>
+  </form><div class="rx" aria-live="polite"></div></div>`;
+  const form = el.querySelector('form'), rx = el.querySelector('.rx');
+  let n = 0;
+  const upd = () => {
+    const f = new FormData(form); const F = k => f.get(k) === 'f'; const nm = ((f.get('name') || 'Client').trim() || 'Client').replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+    if (f.get('pain')) {
+      rx.className = 'rx alert';
+      rx.innerHTML = `<div class="tag">Refer out</div><h3>${nm}: hold loading</h3><p>Pain during the screen is outside PS-1 scope. Refer to a qualified medical professional, note which test caused pain, and wait for clearance before building a program.</p>`;
+      return;
+    }
+    const dl = F('hinge') ? 'Hinge patterning' : F('toe') ? 'Elevated pull or KB deadlift' : 'Trap bar deadlift';
+    const pr = F('wall') ? 'Landmine press' : 'Half-kneeling single-arm press';
+    const cr = F('sls') && F('grip') ? 'Light farmer’s carry only' : F('sls') ? 'Farmer’s carry (two-handed only)' : F('grip') ? 'Lighter farmer’s and suitcase carries' : 'Full carry family';
+    const emph = [F('toe') && 'hamstring mobility', F('wall') && 'thoracic spine and wall slides', F('sls') && 'balance work', F('grip') && 'grip work', F('hinge') && 'dowel hinge practice'].filter(Boolean);
+    const fails = tests.filter(([k]) => F(k)).length;
+    rx.className = 'rx';
+    rx.innerHTML = `<div class="tag">Starting profile · ${5 - fails}/5 passed</div><h3>${nm}</h3>
+      <dl class="kv"><dt>Pick up</dt><dd>${dl}</dd><dt>Press</dt><dd>${pr}</dd><dt>Carry</dt><dd>${cr}</dd><dt>Prep focus</dt><dd>${emph.length ? emph.join(', ') : 'Standard Primal Prep'}</dd><dt>Retest</dt><dd>Every 4 weeks, at the deload</dd></dl>`;
+  };
+  form.oninput = () => { upd(); if (++n >= 2) done(); };
+  upd();
+};
+
+/* M7: template builder + audit */
+TOOLS.template = (el, done) => {
+  const weeks = { 1: ['RPE 6', 1, 'Find working weights; leave 4 reps in reserve.'], 2: ['RPE 7', 1, 'Add a small amount of load if technique held.'], 3: ['RPE 8', 1, 'Heaviest week; still 2 reps in reserve.'], 4: ['Deload · RPE 6', .6, 'Cut sets by about 40%, keep the weights moderate.'] };
+  const F = [
+    ['bench', 1, 'Bench press', 'press', 3, '8', 'Horizontal press'], ['csrow', 1, 'Chest-supported row', 'pull', 4, '10', 'Horizontal pull'], ['split', 1, 'Split squat', 'leg', 3, '8 each', 'Single-leg'],
+    ['squat', 2, 'Squat variation', 'squat', 4, '6', 'Squat'], ['pullup', 2, 'Pull-ups', 'vpull', 3, '6–10', 'Vertical pull'], ['sarow', 2, 'Single-arm DB row', 'pull', 3, '10', 'Horizontal pull'],
+    ['dbbench', 3, 'DB bench or push-ups', 'press', 3, '10', 'Horizontal press'], ['pulldown', 3, 'Lat pulldown or chin-ups', 'vpull', 3, '10', 'Vertical pull'], ['stepup', 3, 'Step-ups', 'leg', 3, '8 each', 'Single-leg']
+  ];
+  el.innerHTML = `<h2>Build the week</h2><p class="lede">Plug in the client’s variations from their screen and pick the week of the block. Untick a Foundation exercise to see how the weekly audit catches it.</p>
+  <div class="two" style="margin-bottom:16px"><div>
+    <fieldset><legend>Week of the block</legend><div class="seg">${[1, 2, 3, 4].map(w => `<input type="radio" name="wk" id="t-w${w}" value="${w}" ${w === 1 ? 'checked' : ''}><label for="t-w${w}">Week ${w}${w === 4 ? ' (deload)' : ''}</label>`).join('')}</div></fieldset>
+    <fieldset><label class="flabel" for="t-dl">Deadlift variation</label><select class="field" id="t-dl">${LADDER_DL.slice(1).map((l, i) => `<option ${i === 2 ? 'selected' : ''}>${l}</option>`).join('')}</select></fieldset>
+    <fieldset><label class="flabel" for="t-pr">Press variation</label><select class="field" id="t-pr">${LADDER_PR.map((l, i) => `<option ${i === 1 ? 'selected' : ''}>${l}</option>`).join('')}</select></fieldset>
+  </div><div><span class="flabel">Foundation exercises included</span><div class="checks">${F.map(x => `<label for="t-${x[0]}"><input type="checkbox" id="t-${x[0]}" data-f="${x[0]}" checked> Day ${x[1]}: ${x[2]} <span style="color:var(--muted)">(${x[6]})</span></label>`).join('')}</div></div></div>
+  <div class="tablewrap"><table><thead><tr><th>Day</th><th>Main lift</th><th>Secondary</th><th>Carry</th><th>Foundation Patterns</th></tr></thead><tbody></tbody></table></div>
+  <p class="wknote" style="color:var(--muted);font-size:14px;margin:10px 0 0"></p>
+  <h3 style="font-size:22px;margin-top:22px">Weekly audit</h3><div class="audit"></div>`;
+  let n = 0;
+  const upd = () => {
+    const wk = +el.querySelector('input[name="wk"]:checked').value, [rpe, mult, wnote] = weeks[wk];
+    const s = x => Math.max(1, Math.round(x * mult));
+    const dl = el.querySelector('#t-dl').value, pr = el.querySelector('#t-pr').value;
+    const on = new Set([...el.querySelectorAll('[data-f]')].filter(c => c.checked).map(c => c.dataset.f));
+    const fx = d => F.filter(x => x[1] === d && on.has(x[0])).map(x => `<div><span class="ex">${x[2]}</span> <span class="rx2">${s(x[4])}×${x[5]}</span><span class="tagp">${x[6]}</span></div>`).join('') || '<span style="color:var(--bad)">None</span>';
+    const main = [[`${dl}`, 4, '5'], [`${pr}`, 4, '5'], ['Carry medley', 3, 'rounds']];
+    el.querySelector('tbody').innerHTML = `
+      <tr><td><b>1 · Pick Up</b></td><td><span class="ex">${dl}</span><br><span class="rx2">${s(4)}×5 @ ${rpe}</span></td><td><span class="ex">${pr}</span><br><span class="rx2">${s(3)}×8</span></td><td><span class="ex">Farmer’s carry</span><br><span class="rx2">${s(4)} × 30 m</span></td><td>${fx(1)}</td></tr>
+      <tr><td><b>2 · Press</b></td><td><span class="ex">${pr}</span><br><span class="rx2">${s(4)}×5 @ ${rpe}</span></td><td><span class="ex">RDL</span><br><span class="rx2">${s(3)}×8</span></td><td><span class="ex">Suitcase carry</span><br><span class="rx2">${s(3)} × 20 m each side</span></td><td>${fx(2)}</td></tr>
+      <tr><td><b>3 · Carry</b></td><td><span class="ex">Carry medley</span><br><span class="rx2">${s(3)} rounds: farmer’s, front-rack, overhead</span></td><td><span class="ex">${dl}</span><br><span class="rx2">${s(3)}×3, moderate</span></td><td><span class="rx2">Main lift today</span></td><td>${fx(3)}</td></tr>`;
+    el.querySelector('.wknote').innerHTML = `<b style="color:var(--ink)">Week ${wk}:</b> ${wnote}`;
+    const pressSets = s(4) + s(3) + F.filter(x => x[3] === 'press' && on.has(x[0])).reduce((a, x) => a + s(x[4]), 0);
+    const pullSets = F.filter(x => (x[3] === 'pull' || x[3] === 'vpull') && on.has(x[0])).reduce((a, x) => a + s(x[4]), 0);
+    const pats = { squat: 'Squat', press: 'Horizontal press', pull: 'Horizontal pull', vpull: 'Vertical pull', leg: 'Single-leg' };
+    const missing = Object.keys(pats).filter(k => !F.some(x => x[3] === k && on.has(x[0]))).map(k => pats[k]);
+    const rows = [
+      [true, 'Deadlift, overhead press and carry each appear'],
+      [!missing.length, missing.length ? `Missing Foundation Pattern: ${missing.join(', ')}` : 'All five Foundation Patterns appear'],
+      [pullSets >= pressSets, `Pulling sets (${pullSets}) ${pullSets >= pressSets ? '≥' : '<'} pressing sets (${pressSets}, overhead included)`],
+      [true, 'Every accessory has a Primal purpose'],
+      [true, 'Primal Prep matches each day’s main lift']
+    ];
+    el.querySelector('.audit').innerHTML = rows.map(([ok, t]) => `<div class="${ok ? 'pass' : 'fail'}"><span class="ic">${ok ? '✓' : '✕'}</span><span>${t}</span></div>`).join('');
+  };
+  el.querySelectorAll('input, select').forEach(i => i.addEventListener('change', () => { upd(); if (++n >= 2) done(); }));
+  upd();
+};
+
+/* ================= EXAM ================= */
+function renderExam(v) {
+  if (!examUnlocked()) { v.innerHTML = `<div class="panel"><h2>Final exam locked</h2><p class="lede">Pass all seven module quizzes to unlock the PS-1 Final Exam, or switch on Demo mode at the top.</p><a class="btn" href="#home">Back to course home</a></div>`; return; }
+  const blueprint = [['The Primal Philosophy', '10%', 6], ['The Primal Deadlift', '20%', 12], ['The Overhead Press', '20%', 12], ['Loaded Carries', '15%', 9], ['Primal Prep', '10%', 6], ['The Primal Screen', '15%', 9], ['The Base Template', '10%', 6]];
+  const intro = () => {
+    v.innerHTML = `<div class="title"><div class="eyebrow">Certification</div><h1>PS-1 Final Exam <span class="demo-tag">Demo</span></h1>
+      <p>The real exam is 60 questions in 90 minutes: 45 multiple choice and 15 video fault identification, drawn from a larger bank. This demo draws 15 questions from the module checks.</p></div>
+      <div class="panel" style="margin-top:22px"><h2>Exam blueprint</h2>
+      <div class="tablewrap"><table class="blueprint"><thead><tr><th>Module</th><th>Share</th><th>Questions (real exam)</th></tr></thead><tbody>${blueprint.map(b => `<tr><td>${b[0]}</td><td>${b[1]}</td><td>${b[2]}</td></tr>`).join('')}<tr><td><b>Total</b></td><td><b>100%</b></td><td><b>60</b></td></tr></tbody></table></div>
+      <dl class="kv"><dt>Passing score</dt><dd>80% (48 of 60 on the real exam)</dd><dt>Retakes</dt><dd>First retake free after 7 days</dd><dt>On passing</dt><dd>PS-1 Primal Foundations Coach certificate</dd></dl>
+      ${state.examScore != null ? `<div class="result ${state.examScore >= 80 ? 'pass' : 'fail'}" style="margin-bottom:12px">Last attempt: ${state.examScore}%</div>` : ''}
+      <div class="actions"><button class="btn" type="button" id="startExam">Start the exam</button>${state.examScore >= 80 ? '<button class="btn ghost" type="button" id="viewCert">View certificate</button>' : ''}</div></div>`;
+    v.querySelector('#startExam').onclick = start;
+    const vc = v.querySelector('#viewCert'); if (vc) vc.onclick = () => showCert(v, state.examScore);
+  };
+  const start = () => {
+    const pool = []; MODULES.forEach(m => m.quiz.forEach(q => pool.push(Object.assign({ mod: m.num }, q))));
+    const pick = []; MODULES.forEach(m => { const qs = pool.filter(q => q.mod === m.num).sort(() => Math.random() - .5); pick.push(...qs.slice(0, 2)); });
+    const rest = pool.filter(q => !pick.includes(q)).sort(() => Math.random() - .5); pick.push(rest[0]);
+    pick.sort((a, b) => a.mod - b.mod);
+    let secs = 90 * 60;
+    v.innerHTML = `<div class="examhead"><div><b>PS-1 Final Exam</b> <span class="ans">0 of ${pick.length} answered</span></div><div class="timer" aria-label="Time remaining">90:00</div></div>
+      <div class="panel"><form class="qform">${quizHTML(pick, 'ex', true)}</form>
+      <div class="actions"><button class="btn" type="button" id="submitExam">Submit exam</button></div><div class="qres" aria-live="polite"></div></div>`;
+    const form = v.querySelector('.qform'), ans = v.querySelector('.ans'), tm = v.querySelector('.timer');
+    form.onchange = () => { ans.textContent = `${new Set([...new FormData(form).keys()]).size} of ${pick.length} answered`; };
+    const t = setInterval(() => { secs--; tm.textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`; if (secs <= 0) { clearInterval(t); submit(true); } }, 1000);
+    timers.push(t);
+    const submit = (forced) => {
+      const g = gradeQuiz(form, pick, 'ex');
+      const res = v.querySelector('.qres');
+      if (!forced && g.answered < pick.length) { res.innerHTML = `<div class="result fail">Answer all ${pick.length} questions first. You've answered ${g.answered}.</div>`; return; }
+      clearInterval(t);
+      revealQuiz(form, pick);
+      v.querySelector('#submitExam').remove();
+      state.examScore = Math.max(state.examScore || 0, g.pct); save(); renderChrome('exam');
+      if (g.pct >= 80) {
+        res.innerHTML = `<div class="result pass"><big>${g.pct}% · Passed</big>${g.score} of ${pick.length} correct. You’ve earned PS-1 Primal Foundations.</div><div class="actions"><button class="btn" type="button" id="toCert">See your certificate</button></div>`;
+        res.querySelector('#toCert').onclick = () => showCert(v, g.pct);
+      } else {
+        res.innerHTML = `<div class="result fail"><big>${g.pct}% · Not yet</big>${g.score} of ${pick.length} correct. You need 80%. Review the modules flagged above, then retake.</div><div class="actions"><button class="btn ghost" type="button" id="again">Back to exam overview</button></div>`;
+        res.querySelector('#again').onclick = intro;
+      }
+      window.scrollTo({ top: v.querySelector('.qres').offsetTop - 120 });
+    };
+    v.querySelector('#submitExam').onclick = () => submit(false);
+  };
+  intro();
+}
+
+function showCert(v, pct) {
+  if (!state.certId) { state.certId = 'PS1-' + new Date().getFullYear() + '-' + String(Math.floor(1000 + Math.random() * 9000)); save(); }
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  v.innerHTML = `<div class="title"><div class="eyebrow">Certification</div><h1>Your certificate</h1><p>Type your name to preview how the certificate will look.</p></div>
+    <div class="panel" style="margin-top:18px"><label class="flabel" for="certName">Name on certificate</label><input class="field" id="certName" value="${(state.certName || '').replace(/"/g, '&quot;')}" placeholder="Your full name" style="max-width:420px">
+    <div class="cert"><div class="stamp">DEMO</div><div class="org">Spainhour Bros <span>Strength Co.</span></div>
+      <h2>Certificate of Completion</h2><div class="lvl">Primal System · PS-1 Primal Foundations</div>
+      <div class="name" id="certShow">${state.certName || 'Your Name'}</div>
+      <p>has completed all seven modules of Primal Foundations and passed the PS-1 Final Exam with a score of ${pct}%, and is recognized as a <b>PS-1 Primal Foundations Coach</b>.</p>
+      <div class="row"><div>Date<b>${today}</b></div><div>Credential ID<b>${state.certId}</b></div><div>Valid through<b>2 years from issue</b></div></div></div>
+    <p class="note">Demo preview only. Not a valid credential.</p><div class="actions"><a class="btn ghost" href="#home">Back to course home</a></div></div>`;
+  const inp = v.querySelector('#certName');
+  inp.oninput = () => { state.certName = inp.value; v.querySelector('#certShow').textContent = inp.value || 'Your Name'; save(); };
+}
+
+/* ================= ROUTER ================= */
+function route() {
+  clearTimers();
+  const h = (location.hash || '#home').slice(1);
+  const v = document.getElementById('view');
+  const mi = MODULES.findIndex(m => m.id === h);
+  if (mi >= 0 && unlocked(mi)) { renderChrome(h); renderModule(v, MODULES[mi]); }
+  else if (h === 'exam') { renderChrome('exam'); renderExam(v); }
+  else { renderChrome('home'); renderHome(v); }
+  window.scrollTo(0, 0);
+}
+document.getElementById('demoMode').onchange = e => { state.demo = e.target.checked; save(); route(); };
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>

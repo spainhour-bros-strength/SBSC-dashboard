@@ -27,6 +27,7 @@ window.SB = window.SB || {};
     right: '<path d="M9 5l7 7-7 7"/>',
     check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
     x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    cert: '<circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.5L7 21l5-2.5 5 2.5-1.5-7.5"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.4 4.2-6.5 8-6.5s7 2.1 8 6.5"/>'
   };
   const icon = (name, extra = '') =>

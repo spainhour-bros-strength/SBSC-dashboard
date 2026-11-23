@@ -12,6 +12,7 @@ This project is fully independent. It shares no code, data or accounts with any 
 | **Program Library** | Every program and template. **Upload your finished program PDFs** (drag in several at once): each becomes a library entry with a cover thumbnail, which you can view, download and assign to clients. Built programs can also have their PDF attached. Includes duplicate, export/import, branded printing, and the **Exercise Library** (~90 exercises by category, editable) |
 | **Program Builder** | Build programs as phases, then days, then exercises (label, sets, reps, tempo, rest, load, notes). Supports supersets (2A / 2B), duplicating days and phases, and renumbering. Saves automatically. **Quick Session** sub-tab: type a request ("10 min hip mobility", "random upper lift, DBs only") or tap a preset and get a ready-to-run session you can edit, copy, print or save as a program. Uses Claude when an API key is added in Settings, otherwise a built-in generator from the Exercise Library |
 | **ForceDecks** | Import VALD ForceDecks CSV exports and keep **every metric in the file**. **Team View** shows latest results, readiness, a quadrant profile with any two metrics, and a ranking. **Athlete Report** shows key-metric cards with change vs previous, a readiness score, a trend chart for any metric (with comparison), percentile vs the group, session history, and an all-metrics table with PBs. **All Tests** shows the raw data with CSV export |
+| **Primal System** | The Primal System certification course inside the dashboard. Shows the PS-1 interactive demo (7 modules, interactive tools, quizzes, final exam, certificate preview) with your progress, plus PS-2 / PS-3 status. **Open PS-1 full screen** opens the course on its own page (`primal-ps1.html`), handy on a phone |
 | **Clients** | Roster with search and filters. Each profile has contact and guardian info, membership, assigned program with week progress, jump snapshot, sessions and attendance, and timestamped coach notes |
 | **Memberships** | Membership plans (monthly, weekly, annual, packs), members per plan, estimated revenue, a renewal tracker and a one-click "Renewed" button |
 | **Schedule & Sign-Up** | Month calendar and upcoming list. Create sessions (with weekly repeats), set capacity, sign clients up (automatic waitlist when full), and take attendance |
@@ -74,7 +75,8 @@ files.js              PDF storage (IndexedDB), cover thumbnails, backup of files
 seed.js               Exercise library, starter program, demo data
 app.js                Navigation and routing
 home.js, programs.js, builder.js, quick.js, forcedecks.js,
-clients.js, memberships.js, schedule.js, settings.js   One file per tab
+clients.js, memberships.js, schedule.js, settings.js, primal.js   One file per tab
+primal-ps1.html       Primal System PS-1 course demo (self-contained page)
 *.ttf                 Brand fonts (Bebas Neue, Oswald, Barlow; open licence)
 logo.png, logo-black.png, favicon.png
 chart.umd.min.js      Chart.js 4.6.1 (bundled)

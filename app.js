@@ -9,6 +9,8 @@
     { route: 'programs', label: 'Program Library', icon: 'library' },
     { route: 'builder', label: 'Program Builder', icon: 'builder' },
     { route: 'forcedecks', label: 'ForceDecks', icon: 'jump' },
+    { section: 'Education' },
+    { route: 'primal', label: 'Primal System', icon: 'cert' },
     { section: 'Business' },
     { route: 'clients', label: 'Clients', icon: 'users' },
     { route: 'memberships', label: 'Memberships', icon: 'card' },

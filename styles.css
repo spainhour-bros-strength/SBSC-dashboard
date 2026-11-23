@@ -102,6 +102,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .content { padding: 26px 32px 60px; max-width: 1400px; }
 
+/* ---------- Primal System (embedded course) ---------- */
+.ps-frame-card { padding: 0; overflow: hidden; background: #0e0d0c; }
+.ps-frame { display: block; width: 100%; height: calc(100vh - 120px); min-height: 640px; border: 0; }
+
 /* ---------- Cards / grid ---------- */
 .grid { display: grid; gap: 16px; }
 .grid.kpis { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
